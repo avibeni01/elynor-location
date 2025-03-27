@@ -7,7 +7,8 @@ import { French } from 'flatpickr/dist/l10n/fr.js';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
-import { hubspotAPI, setAccessToken } from './utils/hubspot';
+import { Toaster, toast } from 'react-hot-toast';
+
 
 // Liste des pays pour la location de voiture
 import RENTAL_COUNTRIES from './liste-pays.json';
@@ -121,7 +122,7 @@ function App() {
   const visaLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg";
 
   useEffect(() => {
-    setAccessToken(import.meta.env.VITE_HUBSPOT_API_KEY);
+
     const loadGoogleMapsScript = () => {
       if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
         const script = document.createElement('script');
@@ -199,7 +200,7 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!validateSecondStep()) return;
   
     // Génération et ouverture WhatsApp dans tous les cas
@@ -207,56 +208,52 @@ function App() {
     const whatsappUrl = `https://wa.me/33767613301?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   
+    // Préparation des données
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      notes
+    } = formData;
+  
     try {
-      // 1. Création du contact HubSpot
-      const contactResponse = await hubspotAPI.post('/objects/contacts', {
-        properties: {
-          firstname: formData.firstName,
-          lastname: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          country: formData.country,
-          notes: formData.notes
-        }
-      });
-  
-      const contactId = (contactResponse.data as { id: string }).id;
-  
-      // 2. Création de la transaction HubSpot
-      const dealType = activeTab === 'hotel' ? 'resa_hotel' : 'resa_voiture';
-      await hubspotAPI.post('/objects/deals', {
-        properties: {
-          dealname: `${dealType} - ${formData.firstName} ${formData.lastName}`,
-          pipeline: dealType,
-          dealstage: 'appointmentscheduled',
-          amount: '0',
-          ...(activeTab === 'hotel' ? {
-            destination: destination,
-            check_in_date: dates[0]?.toISOString(),
-            check_out_date: dates[1]?.toISOString()
-          } : {
-            vehicle: selectedVehicle?.["Nom du véhicule"] || 'Non spécifié'
-          })
+      const response = await fetch('/api/hubspot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        associations: [
-          {
-            to: { id: contactId },
-            types: [{ associationCategory: "HUBSPOT_DEFINED", associationTypeId: 3 }]
-          }
-        ]
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          notes,
+          activeTab,
+          destination,
+          dates,
+          selectedVehicle
+        })
       });
-  
-      // Réinitialisation du formulaire si HubSpot réussit
+    
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Erreur API: ${error}`);
+      }
+    
+      const data = await response.json();
+    
       setCurrentStep(1);
-  
+      toast.success("Votre demande a bien été envoyée !");
+    
     } catch (error) {
-      // Log interne seulement
       console.error('Erreur HubSpot:', JSON.stringify({
         error: error instanceof Error ? error.message : 'Unknown error',
         formData,
         timestamp: new Date().toISOString()
       }));
-    }
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
+    }    
   };
   
   const generateWhatsAppMessage = () => {
@@ -865,6 +862,7 @@ function App() {
           </form>
         </div>
       </div>
+      <Toaster position="top-right" />
     </div>
   );
 }
