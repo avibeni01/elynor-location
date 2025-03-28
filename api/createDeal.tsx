@@ -5,7 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
+  const HUBSPOT_API_KEY = process.env.VITE_HUBSPOT_API_KEY;
   if (!HUBSPOT_API_KEY) {
     return res.status(500).json({ error: 'Clé HubSpot manquante' });
   }
