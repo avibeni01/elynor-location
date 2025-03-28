@@ -203,19 +203,8 @@ function App() {
   
     if (!validateSecondStep()) return;
   
-    // Génération et ouverture WhatsApp dans tous les cas
-    const message = generateWhatsAppMessage();
-    const whatsappUrl = `https://wa.me/33767613301?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  
     // Préparation des données
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      notes
-    } = formData;
+    const { firstName, lastName, email, phone, notes } = formData;
   
     try {
       const response = await fetch('/api/hubspot', {
@@ -245,6 +234,11 @@ function App() {
     
       setCurrentStep(1);
       toast.success("Votre demande a bien été envoyée !");
+      
+      // Ouvrir WhatsApp après que la requête a réussi
+      const message = generateWhatsAppMessage();
+      const whatsappUrl = `https://wa.me/972585800707?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     
     } catch (error) {
       console.error('Erreur HubSpot:', JSON.stringify({
@@ -255,6 +249,7 @@ function App() {
       toast.error("Une erreur est survenue. Veuillez réessayer.");
     }    
   };
+  
   
   const generateWhatsAppMessage = () => {
     let message = '';

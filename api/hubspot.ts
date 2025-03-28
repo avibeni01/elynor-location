@@ -6,6 +6,7 @@ export default async function handler(req: Request): Promise<Response> {
     }
   
     const HUBSPOT_API_KEY = process.env.VITE_HUBSPOT_API_KEY;
+
     if (!HUBSPOT_API_KEY) {
       return new Response(JSON.stringify({ error: 'Clé HubSpot manquante' }), {
         status: 500,
@@ -19,7 +20,11 @@ export default async function handler(req: Request): Promise<Response> {
         lastName,
         email,
         phone,
-        notes,
+        preferences_client,
+        le_v_hicule_ne_roule_pas_le_chabat,
+        avez_vous_une_visa_premi_re_,
+        age,
+        nationalite,
         activeTab,
         destination,
         dates,
@@ -39,7 +44,11 @@ export default async function handler(req: Request): Promise<Response> {
             lastname: lastName,
             email,
             phone,
-            notes,
+            preferences_client,
+            le_v_hicule_ne_roule_pas_le_chabat,
+            avez_vous_une_visa_premi_re_,
+            age,
+            nationalite
           },
         }),
       });
@@ -48,26 +57,26 @@ export default async function handler(req: Request): Promise<Response> {
   
       if (!contactRes.ok) {
         return new Response(JSON.stringify({ error: 'Erreur création contact', detail: contactData }), {
-          status: 500,
+          status: contactRes.status, 
         });
-      }
+      }      
   
       const contactId = contactData.id;
   
       // 2. Créer le deal (transaction)
-      const dealType = activeTab === 'hotel' ? 'resa_hotel' : 'resa_voiture';
+      const pipelineId = activeTab === 'hotel' ? 'default' : '1389997300';
   
       const dealProperties: Record<string, any> = {
-        dealname: `${dealType} - ${firstName} ${lastName}`,
-        pipeline: dealType,
+        dealname: `${firstName} ${lastName} - ${activeTab === 'hotel' ? 'Réservation Hôtel' : 'Location Voiture'}`,
+        pipeline: pipelineId,
         dealstage: 'appointmentscheduled',
         amount: '0',
       };
   
       if (activeTab === 'hotel') {
-        dealProperties.destination = destination;
-        dealProperties.check_in_date = dates?.[0];
-        dealProperties.check_out_date = dates?.[1];
+        dealProperties.destination_hotel = destination || 'Non précisé';
+        dealProperties.date_arrivee = dates?.[0] || null;
+        dealProperties.date_depart = dates?.[1] || null;
       } else {
         dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
       }
