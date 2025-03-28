@@ -217,7 +217,7 @@ function App() {
           lastName,
           email,
           phone,
-          notes,
+          preferences_client: notes,
           activeTab,
           destination,
           dates,
