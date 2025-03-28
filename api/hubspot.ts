@@ -74,12 +74,12 @@ export default async function handler(req: Request): Promise<Response> {
       };
   
       if (activeTab === 'hotel') {
-        dealProperties.destination_hotel = destination || 'Non précisé';
-        dealProperties.date_arrivee = dates?.[0] || null;
-        dealProperties.date_depart = dates?.[1] || null;
+        dealProperties.destination = destination || 'Non précisé';
+        dealProperties.check_in_date = dates?.[0] || null;
+        dealProperties.check_out_date = dates?.[1] || null;
       } else {
         dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
-      }
+      }      
   
       const dealRes = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
         method: 'POST',
