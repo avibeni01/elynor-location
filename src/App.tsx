@@ -76,6 +76,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
   const [dates, setDates] = useState<Date[]>([]);
@@ -260,6 +262,7 @@ function App() {
   
       toast.success("Votre demande a bien été envoyée !");
       setCurrentStep(1);
+      setFormSubmitted(true);
   
       // Ouvrir WhatsApp avec le message
       const message = generateWhatsAppMessage();
@@ -317,11 +320,22 @@ function App() {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center flex items-start justify-center pt-20"
-    >
+    <div className="min-h-screen bg-cover bg-center flex items-start justify-center pt-20">
       <div className="w-full max-w-screen-xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-xl p-6">
+          {formSubmitted ? (
+            <div className="text-center py-20">
+              <h2 className="text-3xl font-bold mb-4 text-green-600">
+                Merci !
+              </h2>
+              <p className="text-lg text-gray-700">
+                Votre demande a bien été transmise.<br />
+                Vous recevrez une réponse sous 48H.
+              </p>
+            </div>
+          ) : (
+          // Sinon on affiche le bloc du formulaire
+          <>
           <div className="flex gap-6 mb-6">
             <button
               className={`flex items-center gap-2 pb-2 px-1 font-medium ${
@@ -882,10 +896,13 @@ function App() {
               </>
             )}
           </form>
-        </div>
+          
+          </>
+        )}
       </div>
-      <Toaster position="top-right" />
     </div>
+    <Toaster position="top-right" />
+  </div>
   );
 }
 
