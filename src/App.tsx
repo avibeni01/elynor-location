@@ -203,52 +203,79 @@ function App() {
   
     if (!validateSecondStep()) return;
   
-    // Préparation des données
-    const { firstName, lastName, email, phone, notes } = formData;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      notes,
+      hasVisa,
+      shabbatRestriction,
+      driverAge,
+      country,
+    } = formData;
   
     try {
-      const response = await fetch('/api/hubspot', {
+      // Créer d'abord le contact
+      const contactRes = await fetch('/api/createContact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName,
           lastName,
           email,
           phone,
           preferences_client: notes,
+          le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
+          avez_vous_une_visa_premi_re_: hasVisa,
+          age: driverAge,
+          nationalite: country === "FR;" ? "Français" : "Israélien"
+        })
+      });
+  
+      const contactData = await contactRes.json();
+  
+      if (!contactRes.ok) throw new Error(`Erreur création contact: ${contactData.detail}`);
+  
+      const contactId = contactData.contactId;
+  
+      // Créer ensuite le deal
+      const dealRes = await fetch('/api/createDeal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId,
+          firstName,
+          lastName,
           activeTab,
           destination,
           dates,
           selectedVehicle
         })
       });
-    
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Erreur API: ${error}`);
-      }
-    
-      const data = await response.json();
-    
-      setCurrentStep(1);
+  
+      const dealData = await dealRes.json();
+  
+      if (!dealRes.ok) throw new Error(`Erreur création deal: ${dealData.detail}`);
+  
       toast.success("Votre demande a bien été envoyée !");
-      
-      // Ouvrir WhatsApp après que la requête a réussi
+      setCurrentStep(1);
+  
+      // Ouvrir WhatsApp avec le message
       const message = generateWhatsAppMessage();
       const whatsappUrl = `https://wa.me/972585800707?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
-    
+  
     } catch (error) {
-      console.error('Erreur HubSpot:', JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown error',
+      console.error('Erreur HubSpot:', {
+        error: error instanceof Error ? error.message : error,
         formData,
         timestamp: new Date().toISOString()
-      }));
+      });
       toast.error("Une erreur est survenue. Veuillez réessayer.");
-    }    
+    }
   };
+  
   
   
   const generateWhatsAppMessage = () => {
