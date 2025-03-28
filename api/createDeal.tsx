@@ -34,8 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-      dealProperties.check_in_date = dates?.[0] || null;
-      dealProperties.check_out_date = dates?.[1] || null;
+      dealProperties.check_in_date = dates?.[0] ? new Date(dates[0]).setUTCHours(0, 0, 0, 0) : null;
+      dealProperties.check_out_date = dates?.[1] ? new Date(dates[1]).setUTCHours(0, 0, 0, 0) : null;
+
     } else {
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
     }
