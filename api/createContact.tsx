@@ -1,11 +1,14 @@
+// pages/api/createContact.tsx
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ message: 'Méthode non autorisée' });
   }
 
-  const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
+  const HUBSPOT_API_KEY = process.env.VITE_HUBSPOT_API_KEY;
+
   if (!HUBSPOT_API_KEY) {
     return res.status(500).json({ error: 'Clé HubSpot manquante' });
   }
@@ -20,10 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       le_v_hicule_ne_roule_pas_le_chabat,
       avez_vous_une_visa_premi_re_,
       age,
-      nationalite
+      nationalite,
     } = req.body;
 
-    console.log('Envoi création contact HubSpot...');
+    console.log('🟢 Données reçues pour création de contact:', req.body);
 
     const contactRes = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
       method: 'POST',
@@ -41,30 +44,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           le_v_hicule_ne_roule_pas_le_chabat,
           avez_vous_une_visa_premi_re_,
           age,
-          nationalite
+          nationalite,
         },
       }),
     });
 
     const contactData = await contactRes.json();
-    console.log('Réponse création contact:', contactData);
 
     if (!contactRes.ok) {
-      return res.status(contactRes.status).json({ 
-        error: 'Erreur création contact', 
-        detail: contactData 
+      console.error('🔴 Erreur création contact:', contactData);
+      return res.status(contactRes.status).json({
+        error: 'Erreur création contact',
+        detail: contactData,
       });
     }
 
-    return res.status(200).json({ 
-      success: true, 
-      contactId: contactData.id 
-    });
+    console.log('✅ Contact créé avec succès:', contactData.id);
+
+    return res.status(200).json({ success: true, contactId: contactData.id });
   } catch (error: any) {
-    console.error('Erreur générale Contact:', error);
-    return res.status(500).json({ 
-      error: 'Erreur serveur', 
-      detail: error.message 
+    console.error('❌ Erreur générale création contact:', error.message);
+    return res.status(500).json({
+      error: 'Erreur générale HubSpot',
+      detail: error.message,
     });
   }
 }
