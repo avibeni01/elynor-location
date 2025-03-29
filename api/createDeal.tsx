@@ -18,7 +18,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       activeTab,
       destination,
       dates,
-      selectedVehicle
+      selectedVehicle,
+      station,
+      pickupDate,
+      pickupTime,
+      returnDate,
+      returnTime,
+      driverAge,
+      hasVisa,
+      shomer_shabbat // Renamed from shabbatRestriction
     } = req.body;
 
     console.log('[CreateDeal] Reçu:', req.body);
@@ -39,6 +47,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } else {
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
+      dealProperties.destination = station || 'Non précisé';
+      
+      // Dates et heures de prise en charge et de retour
+      if (pickupDate) {
+        const pickupDateObj = new Date(pickupDate.split('/').reverse().join('-'));
+        dealProperties.check_in_date = pickupDateObj.setUTCHours(0, 0, 0, 0);
+      }
+      
+      if (returnDate) {
+        const returnDateObj = new Date(returnDate.split('/').reverse().join('-'));
+        dealProperties.check_out_date = returnDateObj.setUTCHours(0, 0, 0, 0);
+      }
+      
+      // Informations supplémentaires
+      if (pickupTime) dealProperties.pickup_time = pickupTime;
+      if (returnTime) dealProperties.return_time = returnTime;
+      if (driverAge) dealProperties.driver_age = driverAge;
+      if (hasVisa !== undefined) dealProperties.has_visa_premier = hasVisa ? 'Oui' : 'Non';
+      if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat ? 'Oui' : 'Non'; // Renamed property
     }
 
     const dealRes = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {

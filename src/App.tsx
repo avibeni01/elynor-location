@@ -252,7 +252,16 @@ function App() {
           activeTab,
           destination,
           dates,
-          selectedVehicle
+          selectedVehicle,
+          // Informations supplémentaires pour la location de voiture
+          station: formData.station,
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          returnDate: formData.returnDate,
+          returnTime: formData.returnTime,
+          driverAge: formData.driverAge,
+          hasVisa: formData.hasVisa,
+          shomer_shabbat: formData.shabbatRestriction // Renamed from shabbatRestriction
         })
       });
   
