@@ -64,8 +64,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (pickupTime) dealProperties.pickup_time = pickupTime;
       if (returnTime) dealProperties.return_time = returnTime;
       if (driverAge) dealProperties.driver_age = driverAge;
-      if (hasVisa !== undefined) dealProperties.has_visa_premier = hasVisa ? 'Oui' : 'Non';
-      if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat ? 'Oui' : 'Non'; // Renamed property
+      // Envoyer directement les valeurs booléennes pour les propriétés de type case à cocher
+      if (hasVisa !== undefined) dealProperties.has_visa_premier = hasVisa; 
+      if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat; // Renamed property
     }
 
     const dealRes = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
