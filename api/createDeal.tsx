@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dealProperties: Record<string, any> = {
       dealname: `${firstName} ${lastName} - ${activeTab === 'hotel' ? 'Réservation Hôtel' : 'Location Voiture'}`,
       pipeline: pipelineId,
-      dealstage: 'appointmentscheduled',
+      dealstage: activeTab === 'hotel' ? 'appointmentscheduled' : '1896499449',
       amount: '0',
     };
 
