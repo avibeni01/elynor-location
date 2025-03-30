@@ -49,13 +49,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Convert ISO date strings back to UTC midnight timestamps as required by HubSpot
       if (dates?.[0]) {
         const checkInDate = new Date(dates[0]);
-        dealProperties.check_in_date = Date.UTC(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate()); // Midnight UTC
+        dealProperties.check_in_date = Date.UTC(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
       } else {
         dealProperties.check_in_date = null;
       }
       if (dates?.[1]) {
         const checkOutDate = new Date(dates[1]);
-        dealProperties.check_out_date = Date.UTC(checkOutDate.getUTCFullYear(), checkOutDate.getUTCMonth(), checkOutDate.getUTCDate()); // Midnight UTC
+        dealProperties.check_out_date = Date.UTC(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate());
       } else {
         dealProperties.check_out_date = null;
       }
