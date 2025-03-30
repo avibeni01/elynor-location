@@ -1,5 +1,30 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// Helper function to convert yyyy-mm-dd string to UTC midnight timestamp
+const dateStringToUTCMidnightTimestamp = (dateStr: string | null | undefined): number | null => {
+  if (!dateStr) return null;
+  try {
+    const parts = dateStr.split('-'); // [yyyy, mm, dd]
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2], 10);
+      if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
+        // Validate month and day ranges (basic check)
+        if (monthIndex >= 0 && monthIndex <= 11 && day >= 1 && day <= 31) {
+           return Date.UTC(year, monthIndex, day);
+        }
+      }
+    }
+    console.warn('[CreateDeal] Invalid date string format received:', dateStr);
+    return null;
+  } catch (error) {
+    console.error('[CreateDeal] Error parsing date string:', dateStr, error);
+    return null;
+  }
+};
+
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -11,85 +36,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Destructure all possible fields from the frontend payload
     const {
       contactId,
       firstName,
       lastName,
       activeTab,
-      destination,
-      dates, // Pour l'hôtel
-      selectedVehicle, // Pour la voiture
-      stationName,     // Pour la voiture
-      pickupDate,      // Pour la voiture (format dd/mm/yyyy attendu du frontend)
-      pickupTime,      // Pour la voiture
-      returnDate,      // Pour la voiture (format dd/mm/yyyy attendu du frontend)
-      returnTime,      // Pour la voiture
-      driverAge,       // Pour la voiture
-      hasVisa,         // Pour la voiture
-      shomer_shabbat,  // Pour la voiture
-      occupants,       // Pour l'hôtel
-      rating,          // Pour l'hôtel
-      selectedOptions  // Pour l'hôtel
+      // Common potentially used fields (might be null/undefined depending on tab)
+      destination,     // Hotel destination
+      selectedVehicle, // Car vehicle object
+      stationName,     // Car station name
+      pickupTime,      // Car pickup time
+      returnTime,      // Car return time
+      driverAge,       // Car driver age
+      hasVisa,         // Car visa info
+      shomer_shabbat,  // Car shabbat info
+      occupants,       // Hotel occupants object
+      rating,          // Hotel rating
+      selectedOptions, // Hotel options object
+      // Standardized date strings (yyyy-mm-dd) sent from frontend
+      check_in_date_str, 
+      check_out_date_str 
     } = req.body;
 
     console.log('[CreateDeal] Reçu:', req.body);
 
     const pipelineId = activeTab === 'hotel' ? 'default' : '1389997300';
 
+    // Initialize deal properties
     const dealProperties: Record<string, any> = {
       dealname: `${firstName} ${lastName} - ${activeTab === 'hotel' ? 'Réservation Hôtel' : 'Location Voiture'}`,
       pipeline: pipelineId,
       dealstage: activeTab === 'hotel' ? 'appointmentscheduled' : '1896499449',
-      amount: '0', // HubSpot attend souvent une string pour les montants
+      amount: '0', 
     };
+
+    // --- Date Processing (Common for both tabs) ---
+    // Convert yyyy-mm-dd strings to UTC midnight timestamps for HubSpot
+    dealProperties.check_in_date = dateStringToUTCMidnightTimestamp(check_in_date_str);
+    dealProperties.check_out_date = dateStringToUTCMidnightTimestamp(check_out_date_str);
+    // --- End Date Processing ---
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-
-      if (dates?.[0]) {
-        try {
-          const checkInDate = new Date(dates[0]); // dates[0] est '2025-03-31T21:00:00.000Z'
-          if (!isNaN(checkInDate.getTime())) {
-              // EXTRAIRE EN UTC !
-              const year = checkInDate.getUTCFullYear(); // Année UTC
-              const month = (checkInDate.getUTCMonth() + 1).toString().padStart(2, '0'); // Mois UTC (0-11) + 1
-              const day = checkInDate.getUTCDate().toString().padStart(2, '0'); // Jour UTC
-
-              dealProperties.check_in_date = `${year}-${month}-${day}`; // Devrait donner '2025-04-01'
-          } else {
-             console.warn('[CreateDeal] Invalid check_in_date received for hotel:', dates[0]);
-             dealProperties.check_in_date = null;
-          }
-        } catch (error) {
-            console.error('[CreateDeal] Error parsing check_in_date for hotel:', dates[0], error);
-            dealProperties.check_in_date = null;
-        }
-      } else {
-        dealProperties.check_in_date = null;
-      }
-
-      if (dates?.[1]) {
-        try {
-          const checkOutDate = new Date(dates[1]); // dates[1] est '2025-04-07T21:00:00.000Z'
-          if (!isNaN(checkOutDate.getTime())) {
-              // EXTRAIRE EN UTC !
-              const year = checkOutDate.getUTCFullYear();
-              const month = (checkOutDate.getUTCMonth() + 1).toString().padStart(2, '0');
-              const day = checkOutDate.getUTCDate().toString().padStart(2, '0');
-
-              dealProperties.check_out_date = `${year}-${month}-${day}`; // Devrait donner '2025-04-08'
-          } else {
-              console.warn('[CreateDeal] Invalid check_out_date received for hotel:', dates[1]);
-              dealProperties.check_out_date = null;
-          }
-        } catch (error) {
-           console.error('[CreateDeal] Error parsing check_out_date for hotel:', dates[1], error);
-           dealProperties.check_out_date = null;
-        }
-     } else {
-       dealProperties.check_out_date = null;
-     }
-
+      
       // Add hotel specific properties
       if (occupants) {
         dealProperties.hotel_rooms = occupants.rooms;
@@ -97,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         dealProperties.hotel_children = occupants.children;
         dealProperties.hotel_children_ages = occupants.childrenAges?.join(', ') || '';
       }
-      if (rating) {
+      if (rating !== undefined && rating !== null) { // Check for 0 rating explicitly if needed
         dealProperties.hotel_rating_preference = rating;
       }
       if (selectedOptions) {
@@ -109,57 +99,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } else { // 'car'
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
-      dealProperties.destination = stationName || 'Non précisé';
+      dealProperties.destination = stationName || 'Non précisé'; // Use station name for car destination field
 
-      // --- MODIFICATION VOITURE PICKUP DATE ---
-      // Convertir "dd/mm/yyyy" en "yyyy-mm-dd"
-      if (pickupDate) {
-        const parts = pickupDate.split('/'); // [dd, mm, yyyy]
-        if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-          // Vérification basique du format
-           const day = parts[0];
-           const month = parts[1];
-           const year = parts[2];
-           // Valider les nombres si nécessaire avant de formater
-           if (!isNaN(parseInt(day)) && !isNaN(parseInt(month)) && !isNaN(parseInt(year))) {
-               dealProperties.check_in_date = `${year}-${month}-${day}`;
-           } else {
-               console.warn('[CreateDeal] Invalid pickupDate format received:', pickupDate);
-               dealProperties.check_in_date = null;
-           }
-        } else {
-            console.warn('[CreateDeal] Unexpected pickupDate format received:', pickupDate);
-            dealProperties.check_in_date = null;
-        }
-      } else {
-          dealProperties.check_in_date = null;
-      }
-      // --- FIN MODIFICATION VOITURE PICKUP DATE ---
-
-      // --- MODIFICATION VOITURE RETURN DATE ---
-      // Convertir "dd/mm/yyyy" en "yyyy-mm-dd"
-       if (returnDate) {
-        const parts = returnDate.split('/'); // [dd, mm, yyyy]
-        if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-           const day = parts[0];
-           const month = parts[1];
-           const year = parts[2];
-           if (!isNaN(parseInt(day)) && !isNaN(parseInt(month)) && !isNaN(parseInt(year))) {
-              dealProperties.check_out_date = `${year}-${month}-${day}`;
-           } else {
-               console.warn('[CreateDeal] Invalid returnDate format received:', returnDate);
-               dealProperties.check_out_date = null;
-           }
-        } else {
-            console.warn('[CreateDeal] Unexpected returnDate format received:', returnDate);
-            dealProperties.check_out_date = null;
-        }
-      } else {
-          dealProperties.check_out_date = null;
-      }
-      // --- FIN MODIFICATION VOITURE RETURN DATE ---
-
-      // Informations supplémentaires
+      // Add car specific properties (excluding dates, already handled)
       if (pickupTime) dealProperties.pickup_time = pickupTime;
       if (returnTime) dealProperties.return_time = returnTime;
       if (driverAge) dealProperties.driver_age = driverAge;
@@ -167,12 +109,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat;
     }
 
-    // Journaliser les dates traitées pour le débogage
-    console.log('[CreateDeal] Dates formatées pour HubSpot:', {
-      check_in_date: dealProperties.check_in_date,
-      check_out_date: dealProperties.check_out_date
-    });
+    // Log final properties being sent (excluding sensitive ones if necessary)
+    console.log('[CreateDeal] Propriétés envoyées à HubSpot:', dealProperties);
 
+    // --- HubSpot API Call ---
     const dealRes = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
       method: 'POST',
       headers: {
@@ -194,7 +134,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!dealRes.ok) {
       console.error('[CreateDeal] Erreur HubSpot API:', dealData);
-      // Essayez de fournir un message plus spécifique si possible
       const errorMessage = dealData?.message || 'Erreur création deal';
       const errorDetails = dealData?.errors || dealData;
       return res.status(dealRes.status || 500).json({

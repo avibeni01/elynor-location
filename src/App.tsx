@@ -80,7 +80,7 @@ function App() {
 
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
-  const [dates, setDates] = useState<Date[]>([]);
+  const [dates, setDates] = useState<string[]>([]); // Store dates as 'dd/mm/yyyy' strings
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [showOccupants, setShowOccupants] = useState(false);
@@ -241,6 +241,14 @@ function App() {
   
       const contactId = contactData.contactId;
 
+      // Helper function to format dd/mm/yyyy to yyyy-mm-dd
+      const formatDDMMYYYYToYYYYMMDD = (dateStr: string | null | undefined): string | null => {
+        if (!dateStr) return null;
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return null;
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      };
+
       // Préparer le payload pour l'API createDeal en fonction de l'onglet actif
       let dealPayload: any = {
         contactId,
@@ -253,7 +261,8 @@ function App() {
         dealPayload = {
           ...dealPayload,
           destination, // Destination de l'hôtel
-          dates,       // Dates de l'hôtel
+          check_in_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[0]), // Format hotel date string
+          check_out_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[1]), // Format hotel date string
           occupants,   // Objet occupants
           rating,      // Note en étoiles
           selectedOptions // Objet des options sélectionnées
@@ -267,9 +276,10 @@ function App() {
           ...dealPayload,
           selectedVehicle,
           stationName: stationName, // Nom de la station
-          pickupDate: formData.pickupDate, // Date de prise en charge voiture
+          // Format car date string (already dd/mm/yyyy) to yyyy-mm-dd
+          check_in_date_str: formatDDMMYYYYToYYYYMMDD(formData.pickupDate), 
+          check_out_date_str: formatDDMMYYYYToYYYYMMDD(formData.returnDate),
           pickupTime: formData.pickupTime,
-          returnDate: formData.returnDate, // Date de retour voiture
           returnTime: formData.returnTime,
           driverAge: formData.driverAge,
           hasVisa: formData.hasVisa,
@@ -314,7 +324,7 @@ function App() {
     if (activeTab === 'hotel') {
       message = `Réservation Hôtel:\n
   Destination: ${destination}\n
-  Dates: ${dates.map(d => d.toLocaleDateString('fr-FR')).join(' - ')}\n
+  Dates: ${dates.join(' - ')}\n
   Occupants: ${getOccupantsSummary()}\n
   Étoiles: ${rating}⭐\n
   Options:\n
@@ -392,7 +402,7 @@ function App() {
           <form onSubmit={handleSubmit}>
             {currentStep === 1 && (
               <>
-                            {activeTab === 'hotel' ? (
+              {activeTab === 'hotel' ? (
               <>
                 <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
                 {/* Champ Destination */}
@@ -426,8 +436,18 @@ function App() {
                     }}
                     className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Sélectionnez vos dates"
-                    value={dates}
-                    onChange={(dates) => setDates(dates)}
+                    value={dates} // Flatpickr can often handle dd/mm/yyyy strings if dateFormat matches
+                    onChange={(selectedDates) => {
+                      // Convert selected Date objects to 'dd/mm/yyyy' strings
+                      if (selectedDates.length === 2) {
+                        setDates([
+                          selectedDates[0].toLocaleDateString('fr-FR'),
+                          selectedDates[1].toLocaleDateString('fr-FR')
+                        ]);
+                      } else {
+                        setDates([]); // Clear if range is not complete
+                      }
+                    }}
                   />
                 </div>
                 
