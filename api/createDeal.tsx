@@ -61,9 +61,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         dealProperties.hotel_rating_preference = rating;
       }
       if (selectedOptions) {
-        dealProperties.hotel_option_pool = selectedOptions.pool ? 'Oui' : 'Non';
-        dealProperties.hotel_option_breakfast = selectedOptions.breakfast ? 'Oui' : 'Non';
-        dealProperties.hotel_option_near_beach = selectedOptions.nearBeach ? 'Oui' : 'Non';
+        // Envoyer directement les valeurs booléennes pour les propriétés de type case à cocher
+        dealProperties.hotel_option_pool = selectedOptions.pool; 
+        dealProperties.hotel_option_breakfast = selectedOptions.breakfast;
+        dealProperties.hotel_option_near_beach = selectedOptions.nearBeach;
+        // Pour specificHotel, on peut garder Oui/Non/Non spécifié si ce n'est pas une case à cocher booléenne
         dealProperties.hotel_specific_request = selectedOptions.specificHotel === null ? 'Non spécifié' : (selectedOptions.specificHotel ? 'Oui' : 'Non');
       }
 
