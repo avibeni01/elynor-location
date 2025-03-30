@@ -240,29 +240,48 @@ function App() {
       if (!contactRes.ok) throw new Error(`Erreur création contact: ${contactData.detail}`);
   
       const contactId = contactData.contactId;
+
+      // Préparer le payload pour l'API createDeal en fonction de l'onglet actif
+      let dealPayload: any = {
+        contactId,
+        firstName,
+        lastName,
+        activeTab,
+      };
+
+      if (activeTab === 'hotel') {
+        dealPayload = {
+          ...dealPayload,
+          destination, // Destination de l'hôtel
+          dates,       // Dates de l'hôtel
+          occupants,   // Objet occupants
+          rating,      // Note en étoiles
+          selectedOptions // Objet des options sélectionnées
+        };
+      } else { // 'car'
+        // Trouver le nom de la station correspondant à l'ID
+        const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
+        const stationName = selectedStationObject ? selectedStationObject.Item2 : formData.station; // Utiliser l'ID si le nom n'est pas trouvé
+        
+        dealPayload = {
+          ...dealPayload,
+          selectedVehicle,
+          stationName: stationName, // Nom de la station
+          pickupDate: formData.pickupDate, // Date de prise en charge voiture
+          pickupTime: formData.pickupTime,
+          returnDate: formData.returnDate, // Date de retour voiture
+          returnTime: formData.returnTime,
+          driverAge: formData.driverAge,
+          hasVisa: formData.hasVisa,
+          shomer_shabbat: formData.shabbatRestriction 
+        };
+      }
   
       // Créer ensuite le deal
       const dealRes = await fetch('/api/createDeal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contactId,
-          firstName,
-          lastName,
-          activeTab,
-          destination,
-          dates,
-          selectedVehicle,
-          // Informations supplémentaires pour la location de voiture
-          station: formData.station,
-          pickupDate: formData.pickupDate,
-          pickupTime: formData.pickupTime,
-          returnDate: formData.returnDate,
-          returnTime: formData.returnTime,
-          driverAge: formData.driverAge,
-          hasVisa: formData.hasVisa,
-          shomer_shabbat: formData.shabbatRestriction // Renamed from shabbatRestriction
-        })
+        body: JSON.stringify(dealPayload) // Envoyer le payload conditionnel
       });
   
       const dealData = await dealRes.json();

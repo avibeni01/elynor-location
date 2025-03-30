@@ -19,14 +19,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       destination,
       dates,
       selectedVehicle,
-      station,
+      stationName, // Changed from station
       pickupDate,
       pickupTime,
       returnDate,
       returnTime,
       driverAge,
       hasVisa,
-      shomer_shabbat // Renamed from shabbatRestriction
+      shomer_shabbat, // Renamed from shabbatRestriction
+      // Hotel specific data
+      occupants, 
+      rating, 
+      selectedOptions 
     } = req.body;
 
     console.log('[CreateDeal] Reçu:', req.body);
@@ -44,10 +48,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dealProperties.destination = destination || 'Non précisé';
       dealProperties.check_in_date = dates?.[0] ? new Date(dates[0]).setUTCHours(0, 0, 0, 0) : null;
       dealProperties.check_out_date = dates?.[1] ? new Date(dates[1]).setUTCHours(0, 0, 0, 0) : null;
+      
+      // Add hotel specific properties
+      if (occupants) {
+        dealProperties.hotel_rooms = occupants.rooms;
+        dealProperties.hotel_adults = occupants.adults;
+        dealProperties.hotel_children = occupants.children;
+        // Optionally format children ages into a string or separate properties if needed
+        dealProperties.hotel_children_ages = occupants.childrenAges?.join(', ') || ''; 
+      }
+      if (rating) {
+        dealProperties.hotel_rating_preference = rating;
+      }
+      if (selectedOptions) {
+        dealProperties.hotel_option_pool = selectedOptions.pool ? 'Oui' : 'Non';
+        dealProperties.hotel_option_breakfast = selectedOptions.breakfast ? 'Oui' : 'Non';
+        dealProperties.hotel_option_near_beach = selectedOptions.nearBeach ? 'Oui' : 'Non';
+        dealProperties.hotel_specific_request = selectedOptions.specificHotel === null ? 'Non spécifié' : (selectedOptions.specificHotel ? 'Oui' : 'Non');
+      }
 
-    } else {
+    } else { // 'car'
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
-      dealProperties.destination = station || 'Non précisé';
+      dealProperties.destination = stationName || 'Non précisé'; // Use stationName here
       
       // Dates et heures de prise en charge et de retour
       if (pickupDate) {
