@@ -46,53 +46,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
 
-      // --- MODIFICATION HOTEL CHECK-IN DATE ---
-      // Formatter en YYYY-MM-DD si la date existe
       if (dates?.[0]) {
         try {
-          const checkInDate = new Date(dates[0]);
-          // Vérifier si la date est valide après la conversion
+          const checkInDate = new Date(dates[0]); // dates[0] est '2025-03-31T21:00:00.000Z'
           if (!isNaN(checkInDate.getTime())) {
-              const year = checkInDate.getFullYear();
-              // getMonth() est 0-indexé, donc +1. padStart assure le format MM/DD.
-              const month = (checkInDate.getMonth() + 1).toString().padStart(2, '0');
-              const day = checkInDate.getDate().toString().padStart(2, '0');
-              dealProperties.check_in_date = `${year}-${month}-${day}`;
+              // EXTRAIRE EN UTC !
+              const year = checkInDate.getUTCFullYear(); // Année UTC
+              const month = (checkInDate.getUTCMonth() + 1).toString().padStart(2, '0'); // Mois UTC (0-11) + 1
+              const day = checkInDate.getUTCDate().toString().padStart(2, '0'); // Jour UTC
+
+              dealProperties.check_in_date = `${year}-${month}-${day}`; // Devrait donner '2025-04-01'
           } else {
              console.warn('[CreateDeal] Invalid check_in_date received for hotel:', dates[0]);
-             dealProperties.check_in_date = null; // ou gérer l'erreur autrement
+             dealProperties.check_in_date = null;
           }
         } catch (error) {
             console.error('[CreateDeal] Error parsing check_in_date for hotel:', dates[0], error);
-            dealProperties.check_in_date = null; // Sécurité
+            dealProperties.check_in_date = null;
         }
       } else {
         dealProperties.check_in_date = null;
       }
-      // --- FIN MODIFICATION HOTEL CHECK-IN DATE ---
 
-      // --- MODIFICATION HOTEL CHECK-OUT DATE ---
-      // Formatter en YYYY-MM-DD si la date existe
       if (dates?.[1]) {
-         try {
-           const checkOutDate = new Date(dates[1]);
-           if (!isNaN(checkOutDate.getTime())) {
-               const year = checkOutDate.getFullYear();
-               const month = (checkOutDate.getMonth() + 1).toString().padStart(2, '0');
-               const day = checkOutDate.getDate().toString().padStart(2, '0');
-               dealProperties.check_out_date = `${year}-${month}-${day}`;
-           } else {
-               console.warn('[CreateDeal] Invalid check_out_date received for hotel:', dates[1]);
-               dealProperties.check_out_date = null;
-           }
-         } catch (error) {
-            console.error('[CreateDeal] Error parsing check_out_date for hotel:', dates[1], error);
-            dealProperties.check_out_date = null;
-         }
-      } else {
-        dealProperties.check_out_date = null;
-      }
-      // --- FIN MODIFICATION HOTEL CHECK-OUT DATE ---
+        try {
+          const checkOutDate = new Date(dates[1]); // dates[1] est '2025-04-07T21:00:00.000Z'
+          if (!isNaN(checkOutDate.getTime())) {
+              // EXTRAIRE EN UTC !
+              const year = checkOutDate.getUTCFullYear();
+              const month = (checkOutDate.getUTCMonth() + 1).toString().padStart(2, '0');
+              const day = checkOutDate.getUTCDate().toString().padStart(2, '0');
+
+              dealProperties.check_out_date = `${year}-${month}-${day}`; // Devrait donner '2025-04-08'
+          } else {
+              console.warn('[CreateDeal] Invalid check_out_date received for hotel:', dates[1]);
+              dealProperties.check_out_date = null;
+          }
+        } catch (error) {
+           console.error('[CreateDeal] Error parsing check_out_date for hotel:', dates[1], error);
+           dealProperties.check_out_date = null;
+        }
+     } else {
+       dealProperties.check_out_date = null;
+     }
 
       // Add hotel specific properties
       if (occupants) {
