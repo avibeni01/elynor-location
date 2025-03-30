@@ -46,16 +46,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-      // Convert ISO date strings to UTC midnight timestamps
+      // Convert ISO date strings to UTC noon timestamps to avoid timezone issues
       if (dates?.[0]) {
         const checkInDate = new Date(dates[0]);
-        dealProperties.check_in_date = Date.UTC(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate());
+        // Use noon UTC
+        dealProperties.check_in_date = Date.UTC(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate(), 12, 0, 0); 
       } else {
         dealProperties.check_in_date = null;
       }
       if (dates?.[1]) {
         const checkOutDate = new Date(dates[1]);
-        dealProperties.check_out_date = Date.UTC(checkOutDate.getUTCFullYear(), checkOutDate.getUTCMonth(), checkOutDate.getUTCDate());
+        // Use noon UTC
+        dealProperties.check_out_date = Date.UTC(checkOutDate.getUTCFullYear(), checkOutDate.getUTCMonth(), checkOutDate.getUTCDate(), 12, 0, 0);
       } else {
         dealProperties.check_out_date = null;
       }
