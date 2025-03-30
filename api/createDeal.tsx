@@ -19,15 +19,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       destination,
       dates,
       selectedVehicle,
-      stationName, // Changed from station
+      stationName,
       pickupDate,
       pickupTime,
       returnDate,
       returnTime,
       driverAge,
       hasVisa,
-      shomer_shabbat, // Renamed from shabbatRestriction
-      // Hotel specific data
+      shomer_shabbat,
       occupants, 
       rating, 
       selectedOptions 
@@ -46,18 +45,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-      // Convert ISO date strings to UTC midnight timestamps without timezone adjustment
+      
+      // Pour les dates d'hôtel, utiliser une approche similaire à celle des voitures
       if (dates?.[0]) {
+        // Pour éviter tout problème de fuseau horaire, extraire les composants de date
         const checkInDate = new Date(dates[0]);
-        // Suppression de l'ajustement de fuseau horaire qui causait le décalage d'un jour
-        dealProperties.check_in_date = Date.UTC(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
+        const year = checkInDate.getFullYear();
+        const month = checkInDate.getMonth();
+        const day = checkInDate.getDate();
+        
+        // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
+        dealProperties.check_in_date = Date.UTC(year, month, day, 12, 0, 0);
       } else {
         dealProperties.check_in_date = null;
       }
+      
       if (dates?.[1]) {
         const checkOutDate = new Date(dates[1]);
-        // Suppression de l'ajustement de fuseau horaire qui causait le décalage d'un jour
-        dealProperties.check_out_date = Date.UTC(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate());
+        const year = checkOutDate.getFullYear();
+        const month = checkOutDate.getMonth();
+        const day = checkOutDate.getDate();
+        
+        // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
+        dealProperties.check_out_date = Date.UTC(year, month, day, 12, 0, 0);
       } else {
         dealProperties.check_out_date = null;
       }
@@ -67,27 +77,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         dealProperties.hotel_rooms = occupants.rooms;
         dealProperties.hotel_adults = occupants.adults;
         dealProperties.hotel_children = occupants.children;
-        // Optionally format children ages into a string or separate properties if needed
         dealProperties.hotel_children_ages = occupants.childrenAges?.join(', ') || ''; 
       }
       if (rating) {
         dealProperties.hotel_rating_preference = rating;
       }
       if (selectedOptions) {
-        // Envoyer directement les valeurs booléennes pour les propriétés de type case à cocher
         dealProperties.hotel_option_pool = selectedOptions.pool; 
         dealProperties.hotel_option_breakfast = selectedOptions.breakfast;
         dealProperties.hotel_option_near_beach = selectedOptions.nearBeach;
-        // Pour specificHotel, on peut garder Oui/Non/Non spécifié si ce n'est pas une case à cocher booléenne
         dealProperties.hotel_specific_request = selectedOptions.specificHotel === null ? 'Non spécifié' : (selectedOptions.specificHotel ? 'Oui' : 'Non');
       }
 
     } else { // 'car'
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
-      dealProperties.destination = stationName || 'Non précisé'; // Use stationName here
+      dealProperties.destination = stationName || 'Non précisé';
       
-      // Dates et heures de prise en charge et de retour
-      // Convert 'dd/mm/yyyy' strings to UTC midnight timestamps
+      // Pour les dates de voiture, utiliser la même approche avec l'heure à midi
       if (pickupDate) {
         const parts = pickupDate.split('/'); // [dd, mm, yyyy]
         if (parts.length === 3) {
@@ -95,7 +101,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
           const year = parseInt(parts[2], 10);
           if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
-            dealProperties.check_in_date = Date.UTC(year, monthIndex, day);
+            // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
+            dealProperties.check_in_date = Date.UTC(year, monthIndex, day, 12, 0, 0);
           }
         }
       }
@@ -107,7 +114,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
            const year = parseInt(parts[2], 10);
            if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
-             dealProperties.check_out_date = Date.UTC(year, monthIndex, day);
+             // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
+             dealProperties.check_out_date = Date.UTC(year, monthIndex, day, 12, 0, 0);
            }
          }
       }
@@ -116,10 +124,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (pickupTime) dealProperties.pickup_time = pickupTime;
       if (returnTime) dealProperties.return_time = returnTime;
       if (driverAge) dealProperties.driver_age = driverAge;
-      // Envoyer directement les valeurs booléennes pour les propriétés de type case à cocher
       if (hasVisa !== undefined) dealProperties.has_visa_premier = hasVisa; 
-      if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat; // Renamed property
+      if (shomer_shabbat !== undefined) dealProperties.shomer_shabbat = shomer_shabbat;
     }
+
+    // Journaliser les dates traitées pour le débogage
+    console.log('[CreateDeal] Dates traitées:', {
+      check_in_date: dealProperties.check_in_date ? new Date(dealProperties.check_in_date).toISOString() : null,
+      check_out_date: dealProperties.check_out_date ? new Date(dealProperties.check_out_date).toISOString() : null
+    });
 
     const dealRes = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
       method: 'POST',
