@@ -75,7 +75,7 @@ const formatStationName = (name: string) => {
 function App() {
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   // États pour la réservation d'hôtel
@@ -203,7 +203,9 @@ function App() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    if (!validateSecondStep()) return;
+    if (!validateSecondStep() || isSubmitting) return; // Prevent double submission
+  
+    setIsSubmitting(true); // Set submitting state to true
   
     const {
       firstName,
@@ -308,6 +310,7 @@ function App() {
       window.open(whatsappUrl, '_blank');
   
     } catch (error) {
+      setIsSubmitting(false); // Reset submitting state on error
       console.error('Erreur HubSpot:', {
         error: error instanceof Error ? error.message : error,
         formData,
@@ -436,16 +439,15 @@ function App() {
                     }}
                     className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Sélectionnez vos dates"
-                    value={dates} // Flatpickr can often handle dd/mm/yyyy strings if dateFormat matches
+                    value={dates} 
                     onChange={(selectedDates) => {
-                      // Convert selected Date objects to 'dd/mm/yyyy' strings
                       if (selectedDates.length === 2) {
                         setDates([
                           selectedDates[0].toLocaleDateString('fr-FR'),
                           selectedDates[1].toLocaleDateString('fr-FR')
                         ]);
                       } else {
-                        setDates([]); // Clear if range is not complete
+                        setDates([]);
                       }
                     }}
                   />
@@ -938,11 +940,21 @@ function App() {
                   </button>
                   <button
                     type="submit"
-                    className={`flex items-center gap-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                      ${!validateSecondStep() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={!validateSecondStep()}
+                    className={`flex items-center justify-center gap-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-opacity 
+                      ${(!validateSecondStep() || isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={!validateSecondStep() || isSubmitting}
                   >
-                    Réserver maintenant
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      'Réserver maintenant'
+                    )}
                   </button>
                 </div>
               </>
