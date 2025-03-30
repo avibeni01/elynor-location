@@ -46,20 +46,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-      // Convert ISO date strings back to UTC midnight timestamps as required by HubSpot
+      // Convert ISO date strings to UTC midnight timestamps without timezone adjustment
       if (dates?.[0]) {
         const checkInDate = new Date(dates[0]);
-        // Ajuster pour le fuseau horaire local
-        const offset = checkInDate.getTimezoneOffset() * 60 * 1000;
-        dealProperties.check_in_date = Date.UTC(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate()) + offset;
+        // Suppression de l'ajustement de fuseau horaire qui causait le décalage d'un jour
+        dealProperties.check_in_date = Date.UTC(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
       } else {
         dealProperties.check_in_date = null;
       }
       if (dates?.[1]) {
         const checkOutDate = new Date(dates[1]);
-        // Ajuster pour le fuseau horaire local
-        const offset = checkOutDate.getTimezoneOffset() * 60 * 1000;
-        dealProperties.check_out_date = Date.UTC(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate()) + offset;
+        // Suppression de l'ajustement de fuseau horaire qui causait le décalage d'un jour
+        dealProperties.check_out_date = Date.UTC(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate());
       } else {
         dealProperties.check_out_date = null;
       }
