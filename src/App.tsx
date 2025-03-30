@@ -418,7 +418,11 @@ function App() {
                       minDate: "today",
                       showMonths: 2,
                       dateFormat: "d/m/Y",
-                      disableMobile: true 
+                      disableMobile: true,
+                      time_24hr: true,
+                      enableTime: false,
+                      static: true,
+                      minuteIncrement: 1
                     }}
                     className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Sélectionnez vos dates"
