@@ -46,8 +46,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
-      dealProperties.check_in_date = dates?.[0] ? new Date(dates[0]).setUTCHours(0, 0, 0, 0) : null;
-      dealProperties.check_out_date = dates?.[1] ? new Date(dates[1]).setUTCHours(0, 0, 0, 0) : null;
+      // Convert ISO date strings to UTC midnight timestamps
+      if (dates?.[0]) {
+        const checkInDate = new Date(dates[0]);
+        dealProperties.check_in_date = Date.UTC(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate());
+      } else {
+        dealProperties.check_in_date = null;
+      }
+      if (dates?.[1]) {
+        const checkOutDate = new Date(dates[1]);
+        dealProperties.check_out_date = Date.UTC(checkOutDate.getUTCFullYear(), checkOutDate.getUTCMonth(), checkOutDate.getUTCDate());
+      } else {
+        dealProperties.check_out_date = null;
+      }
       
       // Add hotel specific properties
       if (occupants) {
@@ -74,14 +85,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dealProperties.destination = stationName || 'Non précisé'; // Use stationName here
       
       // Dates et heures de prise en charge et de retour
+      // Convert 'dd/mm/yyyy' strings to UTC midnight timestamps
       if (pickupDate) {
-        const pickupDateObj = new Date(pickupDate.split('/').reverse().join('-'));
-        dealProperties.check_in_date = pickupDateObj.setUTCHours(0, 0, 0, 0);
+        const parts = pickupDate.split('/'); // [dd, mm, yyyy]
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+          const year = parseInt(parts[2], 10);
+          if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
+            dealProperties.check_in_date = Date.UTC(year, monthIndex, day);
+          }
+        }
       }
       
       if (returnDate) {
-        const returnDateObj = new Date(returnDate.split('/').reverse().join('-'));
-        dealProperties.check_out_date = returnDateObj.setUTCHours(0, 0, 0, 0);
+         const parts = returnDate.split('/'); // [dd, mm, yyyy]
+         if (parts.length === 3) {
+           const day = parseInt(parts[0], 10);
+           const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+           const year = parseInt(parts[2], 10);
+           if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
+             dealProperties.check_out_date = Date.UTC(year, monthIndex, day);
+           }
+         }
       }
       
       // Informations supplémentaires
