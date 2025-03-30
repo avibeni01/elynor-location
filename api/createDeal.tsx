@@ -46,16 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (activeTab === 'hotel') {
       dealProperties.destination = destination || 'Non précisé';
       
-      // Pour les dates d'hôtel, utiliser une approche similaire à celle des voitures
+      // Pour les dates d'hôtel, utiliser exactement minuit UTC comme l'exige HubSpot
       if (dates?.[0]) {
-        // Pour éviter tout problème de fuseau horaire, extraire les composants de date
         const checkInDate = new Date(dates[0]);
         const year = checkInDate.getFullYear();
         const month = checkInDate.getMonth();
         const day = checkInDate.getDate();
         
-        // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
-        dealProperties.check_in_date = Date.UTC(year, month, day, 12, 0, 0);
+        // Utiliser minuit (00:00) comme exigé par HubSpot
+        dealProperties.check_in_date = Date.UTC(year, month, day, 0, 0, 0);
       } else {
         dealProperties.check_in_date = null;
       }
@@ -66,8 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const month = checkOutDate.getMonth();
         const day = checkOutDate.getDate();
         
-        // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
-        dealProperties.check_out_date = Date.UTC(year, month, day, 12, 0, 0);
+        // Utiliser minuit (00:00) comme exigé par HubSpot
+        dealProperties.check_out_date = Date.UTC(year, month, day, 0, 0, 0);
       } else {
         dealProperties.check_out_date = null;
       }
@@ -93,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
       dealProperties.destination = stationName || 'Non précisé';
       
-      // Pour les dates de voiture, utiliser la même approche avec l'heure à midi
+      // Pour les dates de voiture, utiliser exactement minuit UTC
       if (pickupDate) {
         const parts = pickupDate.split('/'); // [dd, mm, yyyy]
         if (parts.length === 3) {
@@ -101,8 +100,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
           const year = parseInt(parts[2], 10);
           if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
-            // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
-            dealProperties.check_in_date = Date.UTC(year, monthIndex, day, 12, 0, 0);
+            // Utiliser minuit (00:00) comme exigé par HubSpot
+            dealProperties.check_in_date = Date.UTC(year, monthIndex, day, 0, 0, 0);
           }
         }
       }
@@ -114,8 +113,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
            const year = parseInt(parts[2], 10);
            if (!isNaN(day) && !isNaN(monthIndex) && !isNaN(year)) {
-             // Utiliser midi (12:00) pour éviter tout changement de jour dû au fuseau horaire
-             dealProperties.check_out_date = Date.UTC(year, monthIndex, day, 12, 0, 0);
+             // Utiliser minuit (00:00) comme exigé par HubSpot
+             dealProperties.check_out_date = Date.UTC(year, monthIndex, day, 0, 0, 0);
            }
          }
       }
