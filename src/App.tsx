@@ -141,10 +141,17 @@ function App() {
         const autocomplete = new window.google.maps.places.Autocomplete(input);
         autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace();
-          if (place && place.formatted_address) {
-            setDestination(place.formatted_address); // Update state with selected place
-          } else if (place && place.name) {
-            setDestination(place.name); // Fallback to name if formatted_address is not available
+          if (place) { // Vérification générale que place existe
+            if (place.name) {
+              setDestination(place.name); // Prioriser le nom du lieu
+            } else if (place.formatted_address) {
+              // N'utiliser l'adresse formatée que si le nom n'est pas disponible
+              setDestination(place.formatted_address);
+            }
+            // Optionnel : vous pouvez ajouter un else pour gérer le cas où ni nom ni adresse ne sont trouvés
+             else {
+               console.log('Place sélectionnée sans nom ni adresse formatée:', place);
+             }
           }
         });
       }
