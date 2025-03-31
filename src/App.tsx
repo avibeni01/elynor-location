@@ -137,9 +137,19 @@ function App() {
 
     const initializeAutocomplete = () => {
       const input = document.getElementById('destination') as HTMLInputElement;
-      if (input && window.google) {
-        new window.google.maps.places.Autocomplete(input, {
+      if (input && window.google && window.google.maps && window.google.maps.places) {
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
           types: ['(cities)']
+        });
+
+        // Add listener for place selection
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place && place.formatted_address) {
+            setDestination(place.formatted_address); // Update state with selected place
+          } else if (place && place.name) {
+            setDestination(place.name); // Fallback to name if formatted_address is not available
+          }
         });
       }
     };
