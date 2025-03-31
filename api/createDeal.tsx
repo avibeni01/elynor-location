@@ -85,8 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (occupants) {
         dealProperties.hotel_rooms = occupants.rooms;
         dealProperties.hotel_adults = occupants.adults;
-        dealProperties.hotel_children = occupants.children;
-        dealProperties.hotel_children_ages = occupants.childrenAges?.join(', ') || '';
+        dealProperties.hotel_children = occupants.children; // 2-17 ans
+        dealProperties.hotel_babies = occupants.babies;     // 0-2 ans
+        dealProperties.hotel_children_ages = occupants.childrenAges?.join(', ') || ''; // Ages for 2-17
       }
       if (rating !== undefined && rating !== null) { // Check for 0 rating explicitly if needed
         dealProperties.hotel_rating_preference = rating;

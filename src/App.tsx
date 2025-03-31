@@ -87,8 +87,9 @@ function App() {
   const [occupants, setOccupants] = useState({
     rooms: 1,
     adults: 1,
-    children: 0,
-    childrenAges: [] as number[]
+    children: 0, // 2-17 ans
+    babies: 0,   // 0-2 ans
+    childrenAges: [] as number[] // Keep this for children 2-17
   });
   const [selectedOptions, setSelectedOptions] = useState({
     pool: false,
@@ -155,24 +156,41 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleOccupantChange = (type: 'rooms' | 'adults' | 'children', increment: number) => {
+  const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
       const newValue = Math.max(0, prev[type] + increment);
+
+      // Handle children (2-17) ages specifically
       if (type === 'children') {
         const ages = [...prev.childrenAges];
         if (increment > 0) {
-          ages.push(0);
-        } else if (increment < 0) {
+          ages.push(2); // Default age for new child (2-17)
+        } else if (increment < 0 && ages.length > 0) {
           ages.pop();
         }
         return { ...prev, [type]: newValue, childrenAges: ages };
       }
-      return { ...prev, [type]: type === 'rooms' || type === 'adults' ? Math.max(1, newValue) : newValue };
+
+      // Handle rooms and adults minimum value
+      if (type === 'rooms' || type === 'adults') {
+        return { ...prev, [type]: Math.max(1, newValue) };
+      }
+
+      // Handle babies or other types
+      return { ...prev, [type]: newValue };
     });
   };
 
   const getOccupantsSummary = () => {
-    return `${occupants.adults} adulte${occupants.adults > 1 ? 's' : ''}, ${occupants.children} enfant${occupants.children > 1 ? 's' : ''}, ${occupants.rooms} chambre${occupants.rooms > 1 ? 's' : ''}`;
+    let summary = `${occupants.adults} adulte${occupants.adults > 1 ? 's' : ''}`;
+    if (occupants.children > 0) {
+      summary += `, ${occupants.children} enfant${occupants.children > 1 ? 's' : ''}`;
+    }
+    if (occupants.babies > 0) {
+      summary += `, ${occupants.babies} bébé${occupants.babies > 1 ? 's' : ''}`;
+    }
+    summary += `, ${occupants.rooms} chambre${occupants.rooms > 1 ? 's' : ''}`;
+    return summary;
   };
 
   // --- Step Validation ---
@@ -284,7 +302,13 @@ function App() {
           destination,
           check_in_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[0]),
           check_out_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[1]),
-          occupants,
+          occupants: { // Send individual counts
+            rooms: occupants.rooms,
+            adults: occupants.adults,
+            children: occupants.children,
+            babies: occupants.babies,
+            // childrenAges: occupants.childrenAges // Maybe send ages too if needed by CRM?
+          },
           rating,
           // Remove specificHotel boolean from selectedOptions
           selectedOptions: { 
@@ -459,19 +483,28 @@ function App() {
                           <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('adults', 1)}><Plus size={16} /></button>
                         </div>
                       </div>
-                      {/* Children */}
+                      {/* Children (2-17) */}
                       <div className="flex items-center justify-between">
-                        <span>Enfants (0-17)</span>
+                        <span>Enfants (2-17 ans)</span>
                         <div className="flex items-center gap-3">
-                          <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('children', -1)}><Minus size={16} /></button>
+                          <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('children', -1)} disabled={occupants.children <= 0}><Minus size={16} /></button>
                           <span className="w-8 text-center">{occupants.children}</span>
                           <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('children', 1)}><Plus size={16} /></button>
                         </div>
                       </div>
-                      {/* Children Ages */}
+                       {/* Babies (0-2) */}
+                       <div className="flex items-center justify-between">
+                        <span>Bébés (0-2 ans)</span>
+                        <div className="flex items-center gap-3">
+                          <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('babies', -1)} disabled={occupants.babies <= 0}><Minus size={16} /></button>
+                          <span className="w-8 text-center">{occupants.babies}</span>
+                          <button type="button" className="p-1 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('babies', 1)}><Plus size={16} /></button>
+                        </div>
+                      </div>
+                      {/* Children Ages (2-17) */}
                       {occupants.children > 0 && (
                         <div className="space-y-2">
-                          <p className="text-sm font-medium">Âge des enfants</p>
+                          <p className="text-sm font-medium">Âge des enfants (2-17 ans)</p>
                           <div className="grid grid-cols-2 gap-2">
                             {occupants.childrenAges.map((age, index) => (
                               <select key={index} className="p-2 border rounded" value={age}
@@ -480,7 +513,10 @@ function App() {
                                   newAges[index] = parseInt(e.target.value);
                                   setOccupants(prev => ({ ...prev, childrenAges: newAges }));
                                 }}>
-                                {Array.from({ length: 18 }, (_, i) => (<option key={i} value={i}>{i} {i === 0 ? "an" : "ans"}</option>))}
+                                {/* Options from 2 to 17 */}
+                                {Array.from({ length: 16 }, (_, i) => i + 2).map(age => (
+                                  <option key={age} value={age}>{age} ans</option>
+                                ))}
                               </select>
                             ))}
                           </div>
