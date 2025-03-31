@@ -548,20 +548,23 @@ function App() {
         // Car Step 1: Country, Station, Dates, Times, Options, Age
         return (
           <>
-            {/* Country & Station */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="form-group">
-                <select className="w-full p-3 border rounded-lg" value={formData.country}
+            {/* Combined Country/Station/Dates/Times Row */}
+            {/* Changed to md:grid-cols-7 to give more space to Station */}
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6 items-center"> 
+              {/* Country Select (1 column) */}
+              <div className="md:col-span-1">
+                <select className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.country} // Adjusted text size
                   onChange={(e) => setFormData({...formData, country: e.target.value, station: ''})} required>
-                  <option value="">Sélectionnez un pays *</option>
+                  <option value="">Pays *</option>
                   {RENTAL_COUNTRIES.sort((a, b) => ['Israel', 'France', 'États-Unis'].includes(b.Item2) ? 1 : -1)
                     .map((country) => (<option key={country.Item1} value={country.Item1}>{country.Item2}</option>))}
                 </select>
               </div>
-              <div className="form-group">
-                <select className="w-full p-3 border rounded-lg" value={formData.station}
+              {/* Station Select (2 columns) */}
+              <div className="md:col-span-2"> 
+                <select className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.station} // Adjusted text size
                   onChange={(e) => setFormData({...formData, station: e.target.value})} required disabled={!formData.country}>
-                  <option value="">Sélectionnez une station *</option>
+                  <option value="">Station *</option>
                   {stationsToDisplay.map(station => (
                     <option key={station.Item1} value={station.Item1} style={station.Item2.startsWith("red_") ? { color: 'red' } : {}}>
                       {station.Item2.startsWith("red_") ? formatStationName(station.Item2) : station.Item2}
@@ -569,16 +572,14 @@ function App() {
                   ))}
                 </select>
               </div>
-            </div>
-            {/* Dates & Times */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="relative md:col-span-2 col-span-1">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+              {/* Date Range (2 columns) */}
+              <div className="relative md:col-span-2">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={20} />
+                <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
-                    options={{ mode: "range", locale: French, minDate: "today", showMonths: 2, dateFormat: "d/m/Y" }}
-                    className="w-full flatpickr-input bg-transparent outline-none"
-                    placeholder="Dates prise en charge / retour *"
+                    options={{ mode: "range", locale: French, minDate: "today", showMonths: 2, dateFormat: "d/m/Y", static: true }}
+                    className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base" // Adjusted text size
+                    placeholder="Dates *"
                     value={formData.pickupDate && formData.returnDate ? [formData.pickupDate, formData.returnDate] : []}
                     onChange={(selectedDates) => {
                       if (selectedDates.length === 2) {
@@ -589,12 +590,13 @@ function App() {
                   />
                 </div>
               </div>
-              <div className="relative md:col-span-1 col-span-1">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+              {/* Pickup Time (1 column) - Reverted to Flatpickr */}
+              <div className="relative md:col-span-1">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={20} />
+                <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15 }}
-                    className="w-full flatpickr-input bg-transparent outline-none"
+                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: true }}
+                    className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base" // Adjusted text size
                     placeholder="Heure départ *"
                     value={formData.pickupTime}
                     onChange={(selectedTime) => {
@@ -606,12 +608,13 @@ function App() {
                   />
                 </div>
               </div>
-              <div className="relative md:col-span-1 col-span-1">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+              {/* Return Time (1 column) - Reverted to Flatpickr */}
+              <div className="relative md:col-span-1">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={20} />
+                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15 }}
-                    className="w-full flatpickr-input bg-transparent outline-none"
+                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: true }}
+                    className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base" // Adjusted text size
                     placeholder="Heure retour *"
                     value={formData.returnTime}
                     onChange={(selectedTime) => {
@@ -630,12 +633,12 @@ function App() {
                 <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center ${formData.hasVisa ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'}`}>
                   <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto" />
-                  <span>Visa Première ?</span>
+                  <span>Avez vous une Visa Première ?</span>
                 </button>
                 <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center ${formData.shabbatRestriction ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'}`}>
                   <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto" />
-                  <span>Restriction Chabat ?</span>
+                  <span>Le véhicule roule-t-il Chabbat ?</span>
                 </button>
               </div>
               <div className="relative md:col-span-1 col-span-1">
@@ -657,7 +660,7 @@ function App() {
         // Car Step 2: Vehicle Selection
         return (
           <div className="w-full relative">
-            <h3 className="text-lg font-semibold mb-4">Sélectionnez votre véhicule (facultatif)</h3>
+            <h3 className="text-lg font-semibold mb-4">Sélectionnez votre véhicule</h3>
             <Slider {...sliderSettings}>
               {vehicles.map((vehicle) => (
                 <div
@@ -695,7 +698,7 @@ function App() {
   // --- Reusable Contact Info Step ---
   const renderContactInfoStep = () => (
     <>
-      <h3 className="text-lg font-semibold mb-4">Vos informations de contact</h3>
+      {/* <h3 className="text-lg font-semibold mb-4">Vos informations de contact</h3> */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <input type="text" className="p-3 border rounded-lg" placeholder="Prénom *" value={formData.firstName}
           onChange={(e) => setFormData({...formData, firstName: e.target.value})} required />
