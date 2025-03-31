@@ -86,7 +86,7 @@ function App() {
   const [showOccupants, setShowOccupants] = useState(false);
   const [occupants, setOccupants] = useState({
     rooms: 1,
-    adults: 1,
+    adults: 2, // Default to 2 adults
     children: 0, // 2-17 ans
     babies: 0,   // 0-2 ans
     childrenAges: [] as number[] // Keep this for children 2-17
@@ -182,15 +182,13 @@ function App() {
   };
 
   const getOccupantsSummary = () => {
-    let summary = `${occupants.adults} adulte${occupants.adults > 1 ? 's' : ''}`;
-    if (occupants.children > 0) {
-      summary += `, ${occupants.children} enfant${occupants.children > 1 ? 's' : ''}`;
-    }
-    if (occupants.babies > 0) {
-      summary += `, ${occupants.babies} bébé${occupants.babies > 1 ? 's' : ''}`;
-    }
-    summary += `, ${occupants.rooms} chambre${occupants.rooms > 1 ? 's' : ''}`;
-    return summary;
+    // Always show adults, children, babies, and rooms
+    const adultText = `${occupants.adults} adulte${occupants.adults > 1 ? 's' : ''}`;
+    const childText = `${occupants.children} enfant${occupants.children > 1 ? 's' : ''}`;
+    const babyText = `${occupants.babies} bébé${occupants.babies > 1 ? 's' : ''}`;
+    const roomText = `${occupants.rooms} chambre${occupants.rooms > 1 ? 's' : ''}`;
+
+    return `${roomText}, ${adultText}, ${childText}, ${babyText}`;
   };
 
   // --- Step Validation ---
