@@ -77,6 +77,7 @@ function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [hotelName, setHotelName] = useState('');
 
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
@@ -424,33 +425,35 @@ function App() {
                 {/* Sélecteur de dates */}
                 <div className="relative flex-1">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                  <Flatpickr
-                    options={{
-                      mode: "range",
-                      locale: French,
-                      minDate: "today",
-                      showMonths: 2,
-                      dateFormat: "d/m/Y",
-                      disableMobile: true,
-                      time_24hr: true,
-                      enableTime: false,
-                      static: true,
-                      minuteIncrement: 1
-                    }}
-                    className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Sélectionnez vos dates"
-                    value={dates} 
-                    onChange={(selectedDates) => {
-                      if (selectedDates.length === 2) {
-                        setDates([
-                          selectedDates[0].toLocaleDateString('fr-FR'),
-                          selectedDates[1].toLocaleDateString('fr-FR')
-                        ]);
-                      } else {
-                        setDates([]);
-                      }
-                    }}
-                  />
+                  <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <Flatpickr
+                          options={{
+                              mode: "range",
+                              locale: French,
+                              minDate: "today",
+                              showMonths: 2,
+                              dateFormat: "d/m/Y",
+                              disableMobile: true,
+                              time_24hr: true,
+                              enableTime: false,
+                              static: true,
+                              minuteIncrement: 1
+                          }}
+                          className="w-full flatpickr-input"
+                          placeholder="Sélectionnez vos dates"
+                          value={dates}
+                          onChange={(selectedDates) => {
+                              if (selectedDates.length === 2) {
+                                  setDates([
+                                      selectedDates[0].toLocaleDateString('fr-FR'),
+                                      selectedDates[1].toLocaleDateString('fr-FR')
+                                  ]);
+                              } else {
+                                  setDates([]);
+                              }
+                          }}
+                      />
+                  </div>
                 </div>
                 
                 {/* Sélecteur d'occupants */}
@@ -623,30 +626,17 @@ function App() {
                 </div>
 
                 <div className="relative md:col-span-1 col-span-1">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Souhaitez-vous un hôtel particulier ?</p>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="specificHotel"
-                        checked={selectedOptions.specificHotel === true}
-                        onChange={() => setSelectedOptions(prev => ({ ...prev, specificHotel: true }))}
-                        className="text-blue-600"
-                      />
-                      <span>Oui</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="specificHotel"
-                        checked={selectedOptions.specificHotel === false}
-                        onChange={() => setSelectedOptions(prev => ({ ...prev, specificHotel: false }))}
-                        className="text-blue-600"
-                      />
-                      <span>Non</span>
-                    </label>
-                  </div>
-                </div>
+  <p className="text-sm font-medium text-gray-700 mb-2">
+    Avez-vous une idée d'hôtel en particulier ?
+  </p>
+  <input
+    type="text"
+    placeholder="Nom de l'hôtel"
+    className="w-full p-2 border rounded-md"
+    value={hotelName} // Assurez-vous d'avoir un état pour hotelName
+    onChange={(e) => setHotelName(e.target.value)} // Mise à jour de l'état
+  />
+</div>
                 </div>
               </>
             ) : (
