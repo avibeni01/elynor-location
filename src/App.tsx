@@ -139,7 +139,7 @@ function App() {
       const input = document.getElementById('destination') as HTMLInputElement;
       if (input && window.google && window.google.maps && window.google.maps.places) {
         const autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ['(cities)']
+          types: ['(cities)', 'establishment', 'airport']
         });
 
         // Add listener for place selection
