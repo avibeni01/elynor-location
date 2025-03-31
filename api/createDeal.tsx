@@ -53,10 +53,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       shomer_shabbat,  // Car shabbat info
       occupants,       // Hotel occupants object
       rating,          // Hotel rating
-      selectedOptions, // Hotel options object
+      selectedOptions, // Hotel options object (pool, breakfast, nearBeach)
+      souhaite_hotel_en_particulier, // New field for specific hotel name
       // Standardized date strings (yyyy-mm-dd) sent from frontend
-      check_in_date_str, 
-      check_out_date_str 
+      check_in_date_str,
+      check_out_date_str
     } = req.body;
 
     console.log('[CreateDeal] Reçu:', req.body);
@@ -91,11 +92,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         dealProperties.hotel_rating_preference = rating;
       }
       if (selectedOptions) {
-        dealProperties.hotel_option_pool = selectedOptions.pool;
-        dealProperties.hotel_option_breakfast = selectedOptions.breakfast;
-        dealProperties.hotel_option_near_beach = selectedOptions.nearBeach;
-        dealProperties.hotel_specific_request = selectedOptions.specificHotel === null ? 'Non spécifié' : (selectedOptions.specificHotel ? 'Oui' : 'Non');
+        dealProperties.hotel_option_pool = selectedOptions.pool ?? false; // Default to false if undefined
+        dealProperties.hotel_option_breakfast = selectedOptions.breakfast ?? false;
+        dealProperties.hotel_option_near_beach = selectedOptions.nearBeach ?? false;
       }
+      // Map the new field to the corresponding HubSpot property
+      // Assuming the HubSpot property name is 'souhaite_hotel_en_particulier'
+      dealProperties.souhaite_hotel_en_particulier = souhaite_hotel_en_particulier || null; // Send null if empty/null/undefined
 
     } else { // 'car'
       dealProperties.vehicle = selectedVehicle?.["Nom du véhicule"] || 'Non spécifié';
