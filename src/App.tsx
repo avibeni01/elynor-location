@@ -223,31 +223,48 @@ function App() {
   }, []); // Empty array ensures effect is only run on mount and unmount
 
   useEffect(() => {
-    function sendHeight() {
-      const height = document.documentElement.scrollHeight;
+    const sendHeight = () => {
       if (window.parent !== window) {
+        // Utilisez la plus grande des hauteurs disponibles
+        const height = Math.max(
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight,
+          document.documentElement.offsetHeight,
+          document.body.offsetHeight
+        );
+        
         window.parent.postMessage({
           type: 'setHeight',
           height: height
         }, '*');
       }
-    }
-    
-    // Envoyer la hauteur initiale après le chargement
-    setTimeout(sendHeight, 300);
-    
+    };
+  
+    // Envoyer la hauteur après un court délai pour s'assurer que tout est rendu
+    const initialTimeout = setTimeout(sendHeight, 100);
+  
     // Observer les changements de taille
     const resizeObserver = new ResizeObserver(() => {
       sendHeight();
     });
-    
+  
+    // Observer à la fois body et documentElement
     resizeObserver.observe(document.body);
-    
-    // Nettoyer
+    resizeObserver.observe(document.documentElement);
+  
+    // Envoyer la hauteur lors des changements d'étape ou de contenu
+    const mutationObserver = new MutationObserver(sendHeight);
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  
     return () => {
+      clearTimeout(initialTimeout);
       resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
-  }, []);
+  }, [currentStep, activeTab]); // Réagir aux changements d'étape et d'onglet
 
   const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
