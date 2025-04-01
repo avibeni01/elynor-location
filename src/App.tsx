@@ -768,9 +768,8 @@ function App() {
             {/* Ligne Options / Age / Promo */}
             {/* Grid 1 colonne mobile -> 4 colonnes md */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 items-start">
-              {/* Options Visa / Shabbat */}
-              {/* Empilé sur mobile (flex-col), côte à côte sur md (md:flex-row) */}
-              <div className="flex flex-col md:flex-row gap-3 md:col-span-2">
+              {/* Options Visa / Shabbat - Now always flex-row */}
+              <div className="flex flex-row gap-3 md:col-span-2">
                 <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.hasVisa ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
                   <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto" />
@@ -781,24 +780,27 @@ function App() {
                   <span>🚫🚗 Shabbat</span>
                 </button>
               </div>
-              {/* Age Conducteur - Reverted to select dropdown */}
-              <div className="md:col-span-1">
-                <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge Conducteur *</label>
-                <select id="driverAge" name="age" className="w-full p-3 border rounded-lg" value={formData.driverAge} // Kept p-3 and rounded-lg for consistency
-                  onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
-                  <option value="">Sélectionnez *</option>
-                  {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
-                  <option value="25+">25+</option>
-                </select>
-              </div>
-              {/* Code Promo */}
-              <div className="md:col-span-1">
-                 <label htmlFor="promoCode" className="block text-sm font-medium text-gray-700 mb-1">Code Promo</label>
-                <input id="promoCode" type="text" placeholder="(Facultatif)"
-                  className="w-full p-2 border rounded-md"
-                  value={formData.promoCode}
-                  onChange={(e) => setFormData({ ...formData, promoCode: e.target.value })}
-                 />
+              {/* Age Conducteur and Promo Code - Now flex container on mobile */}
+              <div className="flex flex-row gap-3 md:col-span-2">
+                {/* Age Conducteur */}
+                <div className="flex-1 md:w-1/2">
+                  <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge Conducteur *</label>
+                  <select id="driverAge" name="age" className="w-full p-3 border rounded-lg" value={formData.driverAge}
+                    onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
+                    <option value="">Sélectionnez *</option>
+                    {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
+                    <option value="25+">25+</option>
+                  </select>
+                </div>
+                {/* Code Promo */}
+                <div className="flex-1 md:w-1/2">
+                   <label htmlFor="promoCode" className="block text-sm font-medium text-gray-700 mb-1">Code Promo</label>
+                  <input id="promoCode" type="text" placeholder="(Facultatif)"
+                    className="w-full p-2 border rounded-md"
+                    value={formData.promoCode}
+                    onChange={(e) => setFormData({ ...formData, promoCode: e.target.value })}
+                   />
+                </div>
               </div>
             </div>
           </>
