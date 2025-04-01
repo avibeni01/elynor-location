@@ -105,6 +105,7 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [hotelName, setHotelName] = useState(''); // State for specific hotel name input
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768); // State for mobile view detection
 
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
@@ -196,6 +197,20 @@ function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Effect to handle window resize for responsive Flatpickr options
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768); // md breakpoint
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Call handler right away so state is correct initiall
+    handleResize();
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Empty array ensures effect is only run on mount and unmount
 
   const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
@@ -476,10 +491,10 @@ function App() {
                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
                   <Flatpickr
                     options={{
-                      mode: "range", locale: French, minDate: "today", showMonths: 2,
+                      mode: "range", locale: French, minDate: "today", showMonths: isMobileView ? 1 : 2, // Responsive months based on state
                       dateFormat: "d/m/Y",
-                      // static: false, // Rendu en overlay (par défaut ou explicite)
-                      // disableMobile: false // Laisser Flatpickr/navigateur gérer (par défaut ou explicite)
+                      static: false, // Ensure overlay on mobile
+                      disableMobile: false // Use native mobile picker if available
                     }}
                     className="w-full flatpickr-input bg-transparent outline-none border-none" // Assurer qu'il n'y a pas de double bordure
                     placeholder="Sélectionnez vos dates *" // Ajout * si requis
@@ -668,7 +683,8 @@ function App() {
                     options={{
                       mode: "range", locale: French, minDate: "today", showMonths: 1, // 1 mois pour mobile peut être mieux
                       dateFormat: "d/m/Y",
-                      // static: false, // Overlay
+                      static: false, // Ensure overlay on mobile
+                      disableMobile: false // Use native mobile picker if available
                     }}
                     className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
                     placeholder="Sélectionnez *"
@@ -690,7 +706,7 @@ function App() {
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-[-2px] text-gray-400 z-10 pointer-events-none" size={18} />
                  <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, /* static: false */ }}
+                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false, disableMobile: false }} // Ensure overlay and native mobile time picker
                     className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
                     placeholder="HH:MM *"
                     value={formData.pickupTime}
@@ -711,7 +727,7 @@ function App() {
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-[-2px] text-gray-400 z-10 pointer-events-none" size={18} />
                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, /* static: false */ }}
+                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false, disableMobile: false }} // Ensure overlay and native mobile time picker
                     className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
                     placeholder="HH:MM *"
                     value={formData.returnTime}
@@ -743,15 +759,15 @@ function App() {
                   <span>🚫🚗 Shabbat</span>
                 </button>
               </div>
-              {/* Age Conducteur */}
+              {/* Age Conducteur - Reverted to select dropdown */}
               <div className="md:col-span-1">
                 <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge Conducteur *</label>
-                <input id="driverAge" type="number" placeholder="Ex: 30"
-                  className="w-full p-2 border rounded-md"
-                  value={formData.driverAge}
-                  onChange={(e) => setFormData({ ...formData, driverAge: e.target.value })}
-                  min="18" max="99" required
-                 />
+                <select id="driverAge" name="age" className="w-full p-3 border rounded-lg" value={formData.driverAge} // Kept p-3 and rounded-lg for consistency
+                  onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
+                  <option value="">Sélectionnez *</option>
+                  {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
+                  <option value="25+">25+</option>
+                </select>
               </div>
               {/* Code Promo */}
               <div className="md:col-span-1">
