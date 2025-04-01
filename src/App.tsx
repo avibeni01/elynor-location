@@ -287,6 +287,7 @@ function App() {
       mutationObserver.disconnect();
     };
   }, [currentStep, activeTab, formSubmitted]); // Ajout de formSubmitted comme dépendance
+
   const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
       const newValue = Math.max(0, prev[type] + increment);
@@ -826,12 +827,12 @@ function App() {
                 <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.hasVisa ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
                   <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto hidden sm:block" />
-                  <span>Avez vous une Visa Première ?</span>
+                  <span>J'ai une Visa Première</span>
                 </button>
                 <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.shabbatRestriction ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
                   <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto hidden sm:block" /> {/* Masquer l'image sur mobile avec hidden sm:block */}
-                  <span>Le véhicule ne roule pas Chabbat</span>
+                  <span>Je roule pas Chabbat</span>
                 </button>
               </div>
               {/* Age Conducteur and Promo Code - Now flex container on mobile */}
@@ -933,7 +934,7 @@ function App() {
    const isFinalStep = (activeTab === 'hotel' && currentStep === 2) || (activeTab === 'car' && currentStep === 3);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-10 md:pt-20 pb-10">
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-2 md:pt-4 pb-10">
       <div className="w-full max-w-screen-xl mx-auto px-6"> {/* Augmenté de px-4 à px-6 */}
         <div className="bg-white rounded-lg shadow-xl p-8"> {/* Augmenté de p-6 à p-8 */}
           <Toaster position="top-center" />
