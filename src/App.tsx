@@ -222,6 +222,31 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []); // Empty array ensures effect is only run on mount and unmount
 
+  useEffect(() => {
+    const sendHeight = () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'setHeight',
+          height: document.documentElement.scrollHeight
+        }, '*');
+      }
+    };
+
+    // Envoyer la hauteur initiale
+    sendHeight();
+
+    // Observer les changements de taille
+    const resizeObserver = new ResizeObserver(() => {
+      sendHeight();
+    });
+
+    resizeObserver.observe(document.body);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
       const newValue = Math.max(0, prev[type] + increment);
