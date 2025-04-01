@@ -225,47 +225,68 @@ function App() {
   useEffect(() => {
     const sendHeight = () => {
       if (window.parent !== window) {
-        // Utilisez la plus grande des hauteurs disponibles
-        const height = Math.max(
-          document.documentElement.scrollHeight,
-          document.body.scrollHeight,
-          document.documentElement.offsetHeight,
-          document.body.offsetHeight
-        );
-        
-        window.parent.postMessage({
-          type: 'setHeight',
-          height: height
-        }, '*');
+        // Delay pour s'assurer que le contenu est rendu
+        setTimeout(() => {
+          const height = Math.max(
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight,
+            document.documentElement.offsetHeight,
+            document.body.offsetHeight,
+            document.documentElement.clientHeight
+          );
+          
+          window.parent.postMessage({
+            type: 'setHeight',
+            height: height + 100 // Ajouter une marge pour mobile
+          }, '*');
+        }, 100);
       }
     };
   
-    // Envoyer la hauteur après un court délai pour s'assurer que tout est rendu
-    const initialTimeout = setTimeout(sendHeight, 100);
+    // 1. Envoyer la hauteur initiale
+    sendHeight();
   
-    // Observer les changements de taille
-    const resizeObserver = new ResizeObserver(() => {
-      sendHeight();
-    });
+    // 2. Observer les changements de taille
+    let resizeObserver;
+    try {
+      resizeObserver = new ResizeObserver(() => {
+        sendHeight();
+      });
+      resizeObserver.observe(document.body);
+    } catch (error) {
+      console.log('ResizeObserver non supporté');
+      // Fallback pour les navigateurs qui ne supportent pas ResizeObserver
+      window.addEventListener('resize', sendHeight);
+    }
   
-    // Observer à la fois body et documentElement
-    resizeObserver.observe(document.body);
-    resizeObserver.observe(document.documentElement);
-  
-    // Envoyer la hauteur lors des changements d'étape ou de contenu
+    // 3. Observer les mutations du DOM
     const mutationObserver = new MutationObserver(sendHeight);
     mutationObserver.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      attributes: true
     });
   
+    // 4. Envoyer la hauteur lors des changements d'étape
+    const checkHeight = () => {
+      sendHeight();
+      // Vérifier plusieurs fois pour s'assurer que tout est chargé
+      setTimeout(sendHeight, 500);
+      setTimeout(sendHeight, 1000);
+      setTimeout(sendHeight, 2000);
+    };
+  
+    checkHeight();
+  
     return () => {
-      clearTimeout(initialTimeout);
-      resizeObserver.disconnect();
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', sendHeight);
+      }
       mutationObserver.disconnect();
     };
-  }, [currentStep, activeTab]); // Réagir aux changements d'étape et d'onglet
-
+  }, [currentStep, activeTab, formSubmitted]); // Ajout de formSubmitted comme dépendance
   const handleOccupantChange = (type: 'rooms' | 'adults' | 'children' | 'babies', increment: number) => {
     setOccupants(prev => {
       const newValue = Math.max(0, prev[type] + increment);
