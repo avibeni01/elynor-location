@@ -254,7 +254,9 @@ function App() {
     const babyText = `${occupants.babies} bébé${occupants.babies > 1 ? 's' : ''}`;
     const roomText = `${occupants.rooms} chambre${occupants.rooms > 1 ? 's' : ''}`;
 
-    return `${roomText}, ${adultText}, ${childText}, ${babyText}`;
+    return isMobileView 
+      ? `${roomText}, ${adultText}\n${childText}, ${babyText}` 
+      : `${roomText}, ${adultText}, ${childText}, ${babyText}`;
   };
 
   // --- Step Validation ---
