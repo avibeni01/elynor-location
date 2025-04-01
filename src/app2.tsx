@@ -436,9 +436,7 @@ function App() {
                   type="text"
                   placeholder="Destination (ville, hôtel...)"
                   className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  required
+                  value={destination} onChange={(e) => setDestination(e.target.value)} required
                 />
               </div>
               {/* Dates */}
@@ -539,9 +537,9 @@ function App() {
               </div>
             </div>
 
-            {/* Hotel Options */}
+            {/* Section Options Hôtel */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {/* Rating */}
+              {/* Étoiles */}
               <div className="relative md:col-span-1 col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Nombre d’étoiles</label>
                 <div className="flex gap-1">
@@ -745,7 +743,6 @@ function App() {
   // --- Reusable Contact Info Step ---
   const renderContactInfoStep = () => (
     <>
-      {/* <h3 className="text-lg font-semibold mb-4">Vos informations de contact</h3> */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <input type="text" className="p-3 border rounded-lg" placeholder="Prénom *" value={formData.firstName}
           onChange={(e) => setFormData({...formData, firstName: e.target.value})} required />

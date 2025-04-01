@@ -14,16 +14,14 @@ import RENTAL_COUNTRIES from './liste-pays.json';
 import vehicles from './liste_vehicules_images.json';
 import stations from './resultatsStations.json';
 
-// --- Composants Flèches Slider (adaptés de votre exemple) ---
 const PrevArrow = (props: any) => (
   <button
     {...props}
     type="button"
     onClick={(e) => {
-      e.preventDefault(); // Empêche le comportement par défaut si c'est dans un formulaire
+      e.preventDefault(); 
       props.onClick && props.onClick(e);
     }}
-    // Styles Tailwind pour positionnement et apparence, ajout de z-index plus élevé
     className="slick-prev z-30 absolute left-1 md:left-0 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center"
     aria-label="Précédent" // Pour l'accessibilité
   >
@@ -38,10 +36,9 @@ const NextArrow = (props: any) => (
     {...props}
     type="button"
     onClick={(e) => {
-       e.preventDefault(); // Empêche le comportement par défaut
+       e.preventDefault();
        props.onClick && props.onClick(e);
     }}
-    // Styles Tailwind pour positionnement et apparence, ajout de z-index plus élevé
     className="slick-next z-30 absolute right-1 md:right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center"
     aria-label="Suivant" // Pour l'accessibilité
   >
@@ -51,40 +48,38 @@ const NextArrow = (props: any) => (
   </button>
 );
 
-// --- Réglages Slider (Adaptés de votre exemple pour mobile) ---
 const sliderSettings = {
-  dots: true,       // Afficher les points par défaut (utile sur mobile)
+  dots: true,
   infinite: false,
   speed: 500,
-  slidesToShow: 1, // Afficher 1 slide par défaut (mobile)
-  slidesToScroll: 1, // Défiler 1 slide à la fois
+  slidesToShow: 4, // ou 1 a verifier si c'est mieux
+  slidesToScroll: 1, // Défiler 1 slide à la fois / yavais pas de défilement avant
   swipeToSlide: true,
   nextArrow: <NextArrow />,
   prevArrow: <PrevArrow />,
   // Points de rupture pour écrans plus grands
   responsive: [
     {
-      breakpoint: 1024, // Pour tablettes larges et petits laptops
+      breakpoint: 1024,
       settings: {
         slidesToShow: 3,
-        dots: true // Garder les points ou les cacher (dots: false)
+        dots: false // cacher les points 
       }
     },
     {
       breakpoint: 768, // Pour tablettes
       settings: {
         slidesToShow: 2,
-        dots: true
+        dots: false
       }
     },
     {
       breakpoint: 640, // Pour grands téléphones
       settings: {
-        slidesToShow: 1, // Déjà 1 par défaut, mais on peut le confirmer
-        dots: true
+        slidesToShow: 1,
+        dots: true // afficher les points ???????
       }
     }
-    // La configuration de base (slidesToShow: 1) s'applique aux écrans < 640px
   ]
 };
 
@@ -119,27 +114,27 @@ function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [hotelName, setHotelName] = useState(''); // State for specific hotel name input
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768); // State for mobile view detection - Keep for Flatpickr date picker
+  const [hotelName, setHotelName] = useState(''); 
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
-  const [dates, setDates] = useState<string[]>([]); // Store dates as 'dd/mm/yyyy' strings
+  const [dates, setDates] = useState<string[]>([]); 
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [showOccupants, setShowOccupants] = useState(false);
   const [occupants, setOccupants] = useState({
     rooms: 1,
-    adults: 2, // Default to 2 adults
-    children: 0, // 2-17 ans
-    babies: 0,   // 0-2 ans
-    childrenAges: [] as number[] // Keep this for children 2-17
+    adults: 2, 
+    children: 0, 
+    babies: 0,   
+    childrenAges: [] as number[] 
   });
   const [selectedOptions, setSelectedOptions] = useState({
     pool: false,
     breakfast: false,
     nearBeach: false,
-    specificHotel: null as boolean | null // Changed to track specific hotel input
+    specificHotel: null as boolean | null
   });
 
   // États pour la location de véhicule et les informations de contact
@@ -152,10 +147,10 @@ function App() {
     country: '',
     station: '',
     pickupDate: '',
-    pickupTime: '09:00', // Default time
+    pickupTime: '09:00', 
     returnDate: '',
-    returnTime: '09:00', // Default time
-    driverAge: '',
+    returnTime: '09:00',
+    driverAge: '25+', // tester si ca marche
     hasVisa: false,
     shabbatRestriction: false,
     promoCode: '',
@@ -490,7 +485,7 @@ function App() {
             <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 mb-6">
               {/* Destination */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />  {/* pointer-events-none ??? */}
                 <input
                   id="destination"
                   type="text"
@@ -501,21 +496,19 @@ function App() {
               </div>
               {/* Dates */}
               <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
-                {/* Wrapper pour le style focus */}
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />  {/* pointer-events-none ??? */}
                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
                   <Flatpickr
                     options={{
-                      mode: "range", locale: French, minDate: "today", showMonths: isMobileView ? 1 : 2, // Responsive months based on state
+                      mode: "range", locale: French, minDate: "today", showMonths: isMobileView ? 1 : 2, 
                       dateFormat: "d/m/Y",
-                      static: false, // Ensure overlay on mobile
-                      disableMobile: false // Use native mobile picker if available
+                      static: false, // avant true
+                      disableMobile: false // avant true
                     }}
                     className="w-full flatpickr-input bg-transparent outline-none border-none" // Assurer qu'il n'y a pas de double bordure
-                    placeholder="Sélectionnez vos dates *" // Ajout * si requis
-                    value={dates} // Doit être un tableau de Date ou string formatées selon dateFormat
+                    placeholder="Sélectionnez vos dates" 
+                    value={dates} 
                     onChange={(selectedDates) => {
-                      // Convertir les objets Date en string 'dd/mm/yyyy'
                       setDates(selectedDates.map(d => d.toLocaleDateString('fr-FR')));
                     }}
                     required
@@ -527,7 +520,7 @@ function App() {
                 <div
                   className="flex items-center justify-between p-3 border rounded-lg cursor-pointer"
                   onClick={() => setShowOccupants(!showOccupants)}
-                  aria-expanded={showOccupants} // Pour l'accessibilité
+                  aria-expanded={showOccupants} // Pour l'accessibilité ??????????
                 >
                   <div className="flex items-center gap-2">
                     <Users size={20} className="text-gray-400 flex-shrink-0" />
@@ -535,7 +528,6 @@ function App() {
                   </div>
                   <span className="text-gray-400 ml-2">{showOccupants ? '▲' : '▼'}</span>
                 </div>
-                {/* Popup Occupants */}
                 {showOccupants && (
                   <div className="absolute top-full left-0 right-0 bg-white border rounded-lg mt-1 p-4 shadow-lg z-20">
                     <div className="space-y-3"> {/* Réduit un peu l'espacement si besoin */}
@@ -595,21 +587,20 @@ function App() {
                               </select>
                             ))}
                           </div>
-                        </div> // Closes the 'space-y-2' for ages
-                      )} {/* Closes the 'if occupants.children > 0' */}
-                    </div> {/* Closes the main 'space-y-3' for occupant controls */}
+                        </div> 
+                      )} 
+                    </div> 
                      {/* Bouton pour fermer le popup sur mobile */}
                      <button type="button" onClick={() => setShowOccupants(false)} className="mt-3 text-blue-600 text-sm w-full text-center">Terminé</button>
-                  </div> // Closes the main popup div 'absolute top-full...'
+                  </div> 
                 )}
-              </div> {/* Fin Occupants */}
-            </div> {/* Fin Ligne Destination/Dates/Occupants */}
+              </div> 
+            </div> 
 
             {/* Section Options Hôtel */}
-            {/* Utilise grid-cols-1 par défaut (mobile), passe à 4 colonnes sur md */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {/* Étoiles */}
-              <div className="md:col-span-1"> {/* Prend 1 colonne sur md */}
+              <div className="md:col-span-1"> {/* relative md:col-span-1 col-span-1" */}
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d’étoiles</label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -623,28 +614,28 @@ function App() {
                 </div>
               </div>
               {/* Checkbox Options */}
-              <div className="md:col-span-2"> {/* Prend 2 colonnes sur md */}
-                <p className="text-sm font-medium text-gray-700 mb-1">Options</p>
+              <div className="md:col-span-2"> {/* relative md:col-span-2 col-span-1 */}
+                <p className="text-sm font-medium text-gray-700 mb-1">Options de l'hôtel</p>
                 {/* Utilise flex-wrap pour passer à la ligne si besoin sur mobile */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-2"> {/*flex flex-wrap gap-4 */}
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={selectedOptions.pool} onChange={(e) => setSelectedOptions(prev => ({ ...prev, pool: e.target.checked }))} className="rounded text-blue-600 focus:ring-blue-500" />
                     <span>Piscine</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={selectedOptions.breakfast} onChange={(e) => setSelectedOptions(prev => ({ ...prev, breakfast: e.target.checked }))} className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span>Petit-déj</span>
+                    <span>Petit-déjeuner</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={selectedOptions.nearBeach} onChange={(e) => setSelectedOptions(prev => ({ ...prev, nearBeach: e.target.checked }))} className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span>Proche mer</span>
+                    <span>Proche de la mer</span>
                   </label>
                 </div>
               </div>
               {/* Specific Hotel */}
               <div className="md:col-span-1"> {/* Prend 1 colonne sur md */}
-                 <label htmlFor="hotelName" className="block text-sm font-medium text-gray-700 mb-1">Hôtel particulier ?</label>
-                <input id="hotelName" type="text" placeholder="Nom (facultatif)"
+                <label htmlFor="hotelName" className="block text-sm font-medium text-gray-700 mb-1">Avez-vous une idée d'hôtel en particulier ?</label>
+                <input id="hotelName" type="text" placeholder="Nom de l'hôtel (facultatif)"
                   className="w-full p-2 border rounded-md text-sm"
                   value={hotelName}
                   onChange={(e) => setHotelName(e.target.value)}
@@ -668,20 +659,18 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 md:gap-4 mb-6 items-end">
               {/* Pays */}
               <div className="sm:col-span-1 md:col-span-1">
-                 <label htmlFor="country-select" className="block text-xs font-medium text-gray-600 mb-1">Pays</label>
                 <select id="country-select" className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.country}
                   onChange={(e) => setFormData({...formData, country: e.target.value, station: ''})} required>
-                  <option value="">Sélectionnez *</option>
+                  <option value="">Pays *</option>
                   {RENTAL_COUNTRIES.sort((a, b) => ['Israel', 'France', 'États-Unis'].includes(b.Item2) ? 1 : -1)
                     .map((country) => (<option key={country.Item1} value={country.Item1}>{country.Item2}</option>))}
                 </select>
               </div>
               {/* Station */}
               <div className="sm:col-span-1 md:col-span-2">
-                 <label htmlFor="station-select" className="block text-xs font-medium text-gray-600 mb-1">Station</label>
                 <select id="station-select" className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.station}
                   onChange={(e) => setFormData({...formData, station: e.target.value})} required disabled={!formData.country}>
-                  <option value="">Sélectionnez *</option>
+                  <option value="">Station *</option>
                   {stationsToDisplay.map(station => (
                     <option key={station.Item1} value={station.Item1} className={station.Item2.startsWith("red_") ? 'text-red-600' : ''}>
                       {formatStationName(station.Item2)}
@@ -691,8 +680,7 @@ function App() {
               </div>
               {/* Dates */}
               <div className="relative sm:col-span-2 md:col-span-2">
-                 <label className="block text-xs font-medium text-gray-600 mb-1">Dates Prise/Retour</label>
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-[-2px] text-gray-400 z-10 pointer-events-none" size={18} />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
                   <Flatpickr
                     options={{
@@ -702,7 +690,7 @@ function App() {
                       disableMobile: false // Use native mobile picker if available
                     }}
                     className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
-                    placeholder="Sélectionnez *"
+                    placeholder="Dates Prise/Retour*"
                     value={formData.pickupDate && formData.returnDate ? [formData.pickupDate, formData.returnDate] : []}
                     onChange={(selectedDates) => {
                       if (selectedDates.length === 2) {
@@ -719,8 +707,7 @@ function App() {
               <div className="col-span-1 sm:col-span-2 md:col-span-2 flex flex-row gap-2 md:gap-4">
                 {/* Heure Départ */}
                 <div className="relative flex-1"> {/* Use flex-1 to take available space */}
-                  <label htmlFor="pickupTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
-                  <div className="relative"> {/* Wrapper for icon + select */}
+                  <div className="relative">
                     <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
                    <select
                      id="pickupTime"
@@ -742,8 +729,7 @@ function App() {
                 </div>
                 {/* Heure Retour */}
                 <div className="relative flex-1"> {/* Use flex-1 to take available space */}
-                  <label htmlFor="returnTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
-                  <div className="relative"> {/* Wrapper for icon + select */}
+                  <div className="relative">
                     <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
                    <select
                      id="returnTime"
@@ -773,29 +759,28 @@ function App() {
                 <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.hasVisa ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
                   <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto" />
-                  <span>Visa Première ?</span>
+                  <span>Avez vous une Visa Première ?</span>
                 </button>
                 <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.shabbatRestriction ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <span>🚫🚗 Shabbat</span>
+                  <span>🚗 Le véhicule roule-t-il Chabbat ? 🚫</span>
                 </button>
               </div>
               {/* Age Conducteur and Promo Code - Now flex container on mobile */}
               <div className="flex flex-row gap-3 md:col-span-2">
                 {/* Age Conducteur */}
                 <div className="flex-1 md:w-1/2">
-                  <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge Conducteur *</label>
+                  <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge du conducteur</label>
                   <select id="driverAge" name="age" className="w-full p-3 border rounded-lg" value={formData.driverAge}
                     onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
-                    <option value="">Sélectionnez *</option>
+                    <option value="">Âge conducteur*</option>
                     {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
                     <option value="25+">25+</option>
                   </select>
                 </div>
                 {/* Code Promo */}
                 <div className="flex-1 md:w-1/2">
-                   <label htmlFor="promoCode" className="block text-sm font-medium text-gray-700 mb-1">Code Promo</label>
-                  <input id="promoCode" type="text" placeholder="(Facultatif)"
+                  <input id="promoCode" type="text" placeholder="Code promo"
                     className="w-full p-2 border rounded-md"
                     value={formData.promoCode}
                     onChange={(e) => setFormData({ ...formData, promoCode: e.target.value })}
@@ -809,7 +794,7 @@ function App() {
         // Car Step 2: Vehicle Selection
         return (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Choisissez un type de véhicule (facultatif)</h3>
+            <h3 className="text-lg font-semibold mb-4">Sélectionnez votre véhicule</h3>
             {/* Le slider est maintenant configuré pour être responsive */}
             <Slider {...sliderSettings}>
               {vehicles.map((vehicle, index) => (
@@ -836,32 +821,24 @@ function App() {
 
   // --- Fonction de Rendu pour l'étape Contact (Partagée et Adaptée) ---
   const renderContactInfoStep = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-4">Vos informations de contact</h3>
-       {/* Utilisation de Grid pour la mise en page responsive */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
-          <input type="text" id="firstName" className="w-full p-2 border rounded-md" required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
-        </div>
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-          <input type="text" id="lastName" className="w-full p-2 border rounded-md" required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-          <input type="email" id="email" className="w-full p-2 border rounded-md" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-        </div>
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
-          <input type="tel" id="phone" className="w-full p-2 border rounded-md" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-        </div>
-        <div className="md:col-span-2"> {/* Prend toute la largeur sur md */}
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes / Demandes spéciales</label>
-          <textarea id="notes" rows={3} className="w-full p-2 border rounded-md" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
-        </div>
+<>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <input type="text" className="p-3 border rounded-lg" placeholder="Prénom *" value={formData.firstName}
+          onChange={(e) => setFormData({...formData, firstName: e.target.value})} required />
+        <input type="text" className="p-3 border rounded-lg" placeholder="Nom *" value={formData.lastName}
+          onChange={(e) => setFormData({...formData, lastName: e.target.value})} required />
       </div>
-    </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <input type="email" className="p-3 border rounded-lg" placeholder="Email *" value={formData.email}
+          onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+        <input type="tel" className="p-3 border rounded-lg" placeholder="Téléphone *" value={formData.phone}
+          onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
+      </div>
+      <div className="mb-6">
+        <textarea className="w-full p-3 border rounded-lg" placeholder="Notes ou remarques (facultatif)"
+          value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
+      </div>
+    </>
   );
 
   // --- Determine Button States ---
@@ -888,82 +865,78 @@ function App() {
    const isFinalStep = (activeTab === 'hotel' && currentStep === 2) || (activeTab === 'car' && currentStep === 3);
 
   return (
-    // Utilisation de max-w-4xl et padding responsive
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 bg-gray-50 rounded-lg shadow-lg mt-5 mb-5"> {/* Ajout mb-5 */}
-      <Toaster position="top-center" />
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-10 md:pt-20 pb-10">
+      <div className="w-full max-w-screen-xl mx-auto px-6"> {/* Augmenté de px-4 à px-6 */}
+        <div className="bg-white rounded-lg shadow-xl p-8"> {/* Augmenté de p-6 à p-8 */}
+          <Toaster position="top-center" />
 
-      {/* Message de succès (déplacé en haut pour visibilité immédiate après soumission) */}
-      {formSubmitted && (
-          <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md text-center">
-              <p className="font-semibold">Merci ! Votre demande a été envoyée.</p>
-              <p className="text-sm">Nous vous contacterons bientôt. Vous avez été redirigé vers WhatsApp pour confirmer.</p>
-              {/* Ajouter un bouton pour recommencer si besoin */}
-              <button onClick={() => { setFormSubmitted(false); setCurrentStep(1); /* Reset other states if needed */ }} className="mt-2 text-sm text-blue-600 underline">Faire une nouvelle demande</button>
-          </div>
-      )}
+          {/* Message de succès (déplacé en haut pour visibilité immédiate après soumission) */}
+          {formSubmitted && (
+              <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md text-center">
+                  <p className="font-semibold">Merci ! Votre demande a été envoyée.</p>
+                  <p className="text-sm">Nous vous contacterons bientôt. Vous avez été redirigé vers WhatsApp pour confirmer.</p>
+                  {/* Ajouter un bouton pour recommencer si besoin */}
+                  <button onClick={() => { setFormSubmitted(false); setCurrentStep(1); /* Reset other states if needed */ }} className="mt-2 text-sm text-blue-600 underline">Faire une nouvelle demande</button>
+              </div>
+          )}
 
-      {!formSubmitted && ( // N'affiche le formulaire que si non soumis
-        <>
-          {/* Onglets */}
-          <div className="flex border-b mb-6">
-            <button
-              onClick={() => handleTabChange('hotel')}
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 transition-colors ${activeTab === 'hotel' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              <Hotel size={18} /> Hôtel
-            </button>
-            <button
-              onClick={() => handleTabChange('car')}
-              className={`flex items-center gap-2 py-3 px-4 sm:px-6 transition-colors ${activeTab === 'car' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              <Car size={18} /> Voiture
-            </button>
-          </div>
+          {!formSubmitted && ( // N'affiche le formulaire que si non soumis
+            <>
+              {/* Onglets */}
+              <div className="flex gap-6 mb-6 border-b">
+                <button
+                  className={`flex items-center gap-2 pb-2 px-1 font-medium transition-colors duration-200 ${activeTab === 'hotel' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => handleTabChange('hotel')}>
+                  <Hotel size={20} /> Réserver un hôtel
+                </button>
+                <button
+                  className={`flex items-center gap-2 pb-2 px-1 font-medium transition-colors duration-200 ${activeTab === 'car' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => handleTabChange('car')}>
+                  <Car size={20} /> Louer un véhicule
+                </button>
+              </div>
 
-          {/* Indicateur d'étape (optionnel mais utile) */}
-          <div className="mb-4 text-sm text-gray-600">
-            Étape {currentStep} sur {maxSteps}
-          </div>
+              {/* Contenu de l'étape */}
+              <form onSubmit={handleSubmit}>
+                {renderStepContent()}
 
-          {/* Contenu de l'étape */}
-          <form onSubmit={handleSubmit}>
-            {renderStepContent()}
-
-            {/* Boutons de Navigation / Soumission */}
-            <div className="flex justify-between items-center mt-8 pt-4 border-t">
-              {/* Bouton Précédent */}
-              <button
-                type="button"
-                onClick={handlePreviousStep}
-                className={`flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-opacity ${currentStep > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} // Cacher si première étape
-                disabled={currentStep <= 1}
-              >
-                 <ArrowLeft size={16} /> Précédent
-              </button>
-
-              {/* Bouton Suivant / Soumettre */}
-              {!isFinalStep ? (
+                {/* Boutons de Navigation / Soumission */}
+                <div className="flex justify-between items-center mt-8 pt-4 border-t">
+                  {/* Bouton Précédent */}
                   <button
                     type="button"
-                    onClick={handleNextStep}
-                    className="flex items-center gap-1 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                    disabled={!canGoNext || isSubmitting}
+                    onClick={handlePreviousStep}
+                    className={`flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-opacity ${currentStep > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} // Cacher si première étape
+                    disabled={currentStep <= 1}
                   >
-                    Suivant <ArrowRight size={16} />
+                     <ArrowLeft size={16} /> Précédent
                   </button>
-              ) : (
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
-                    disabled={!validateFinalStep() || isSubmitting}
-                  >
-                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
-                  </button>
-              )}
-            </div>
-          </form>
-        </>
-      )}
+
+                  {/* Bouton Suivant / Soumettre */}
+                  {!isFinalStep ? (
+                      <button
+                        type="button"
+                        onClick={handleNextStep}
+                        className="flex items-center gap-1 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                        disabled={!canGoNext || isSubmitting}
+                      >
+                        Suivant <ArrowRight size={16} />
+                      </button>
+                  ) : (
+                      <button
+                        type="submit"
+                        className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
+                        disabled={!validateFinalStep() || isSubmitting}
+                      >
+                        {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
+                      </button>
+                  )}
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
