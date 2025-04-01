@@ -419,21 +419,19 @@ function App() {
       setFormSubmitted(true); // Show success message
 
       // Open WhatsApp
+      setTimeout(() => {
       const message = generateWhatsAppMessage();
       const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
       
-      try {
-        // Try window.open() first
-        const newWindow = window.open(whatsappUrl, '_blank');
-        
-        // If window.open() was blocked or failed, fallback to location.href
-        if (!newWindow) {
-          window.location.href = whatsappUrl;
-        }
-      } catch (error) {
-        // Final fallback
-        window.location.href = whatsappUrl;
-      }
+       // Créer un lien temporaire et le cliquer
+      const link = document.createElement('a');
+        link.href = whatsappUrl;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 1000); // Délai d'une seconde pour laisser le temps au toast de s'afficher
+
 
     } catch (error) {
       console.error('Erreur HubSpot:', {
