@@ -520,13 +520,13 @@ function App() {
               {/* Occupants */}
               <div className="relative flex-1">
                 <div
-                  className="flex items-center justify-between p-3 border rounded-lg cursor-pointer"
+                  className="flex items-center justify-between p-3 border rounded-lg cursor-pointer min-h-[4rem] md:min-h-0"
                   onClick={() => setShowOccupants(!showOccupants)}
                   aria-expanded={showOccupants} // Pour l'accessibilité ??????????
                 >
                   <div className="flex items-center gap-2">
                     <Users size={20} className="text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{getOccupantsSummary()}</span>
+                    <span className="truncate whitespace-pre-line">{getOccupantsSummary()}</span>
                   </div>
                   <span className="text-gray-400 ml-2">{showOccupants ? '▲' : '▼'}</span>
                 </div>
