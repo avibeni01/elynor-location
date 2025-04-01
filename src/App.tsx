@@ -420,7 +420,7 @@ function App() {
 
       // Open WhatsApp
       const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/972585800707?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
 
     } catch (error) {
