@@ -77,7 +77,7 @@ const sliderSettings = {
       breakpoint: 640, // Pour grands téléphones
       settings: {
         slidesToShow: 1,
-        dots: true // afficher les points ???????
+        dots: false // afficher les points ???????
       }
     }
   ]
@@ -769,13 +769,13 @@ function App() {
               {/* Age Conducteur and Promo Code - Now flex container on mobile */}
               <div className="flex flex-row gap-3 md:col-span-2">
                 {/* Age Conducteur */}
-                <div className="flex-1 md:w-1/2">
-                  <label htmlFor="driverAge" className="block text-sm font-medium text-gray-700 mb-1">Âge du conducteur</label>
+                <div className="flex-1 md:w-1/2 flex items-center gap-2">
+                    <label htmlFor="driverAge" className="text-sm font-medium text-gray-700 text-center">Âge du conducteur</label>
                   <select id="driverAge" name="age" className="w-full p-3 border rounded-lg" value={formData.driverAge}
-                    onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
-                    <option value="">Âge conducteur*</option>
-                    {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
-                    <option value="25+">25+</option>
+                  onChange={(e) => setFormData({...formData, driverAge: e.target.value})} required>
+                  <option value="">Âge conducteur*</option>
+                  {Array.from({ length: 8 }, (_, i) => (<option key={i} value={i + 18}>{i + 18}</option>))}
+                  <option value="25+">25+</option>
                   </select>
                 </div>
                 {/* Code Promo */}
@@ -794,7 +794,7 @@ function App() {
         // Car Step 2: Vehicle Selection
         return (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Sélectionnez votre véhicule</h3>
+            <h3 className="text-base font-semibold mb-4">Sélectionnez votre véhicule</h3>
             {/* Le slider est maintenant configuré pour être responsive */}
             <Slider {...sliderSettings}>
               {vehicles.map((vehicle, index) => (
