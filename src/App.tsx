@@ -422,6 +422,11 @@ function App() {
       setTimeout(() => {
       const message = generateWhatsAppMessage();
       const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
+      console.log("URL WhatsApp:", whatsappUrl); // Vérifiez l'URL générée
+      const newWindow = window.open(whatsappUrl, '_blank');
+      if (!newWindow) {
+        console.error("Erreur: Impossible d'ouvrir la fenêtre WhatsApp.");
+      }
       
        // Créer un lien temporaire et le cliquer
       const link = document.createElement('a');
@@ -430,7 +435,8 @@ function App() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }, 1000); // Délai d'une seconde pour laisser le temps au toast de s'afficher
+      }, 300); // Délai d'une seconde pour laisser le temps au toast de s'afficher
+      
 
 
     } catch (error) {
