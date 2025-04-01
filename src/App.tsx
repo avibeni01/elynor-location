@@ -223,25 +223,27 @@ function App() {
   }, []); // Empty array ensures effect is only run on mount and unmount
 
   useEffect(() => {
-    const sendHeight = () => {
+    function sendHeight() {
+      const height = document.documentElement.scrollHeight;
       if (window.parent !== window) {
         window.parent.postMessage({
           type: 'setHeight',
-          height: document.documentElement.scrollHeight
+          height: height
         }, '*');
       }
-    };
-
-    // Envoyer la hauteur initiale
-    sendHeight();
-
+    }
+    
+    // Envoyer la hauteur initiale après le chargement
+    setTimeout(sendHeight, 300);
+    
     // Observer les changements de taille
     const resizeObserver = new ResizeObserver(() => {
       sendHeight();
     });
-
+    
     resizeObserver.observe(document.body);
-
+    
+    // Nettoyer
     return () => {
       resizeObserver.disconnect();
     };
