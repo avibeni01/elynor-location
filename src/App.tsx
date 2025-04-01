@@ -703,43 +703,69 @@ function App() {
               {/* Heure Départ */}
               <div className="relative sm:col-span-1 md:col-span-1">
                  <label className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-[-2px] text-gray-400 z-10 pointer-events-none" size={18} />
-                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
-                  <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false, disableMobile: false }} // Ensure overlay and native mobile time picker
-                    className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
-                    placeholder="HH:MM *"
-                    value={formData.pickupTime}
-                    onChange={(selectedTime) => {
-                      if (selectedTime.length > 0) {
-                        setFormData({ ...formData, pickupTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
-                      } else {
-                          setFormData({ ...formData, pickupTime: '' }); // Permet de vider
-                      }
-                    }}
-                    required
-                  />
+                 <div className="relative"> {/* Wrapper for icon + input */}
+                   <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
+                   {isMobileView ? (
+                     <input
+                       type="time"
+                       className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       value={formData.pickupTime}
+                       onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+                       required
+                       step="900" // 15 minutes increment
+                     />
+                   ) : (
+                     <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
+                       <Flatpickr
+                         options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false }}
+                         className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
+                         placeholder="HH:MM *"
+                         value={formData.pickupTime}
+                         onChange={(selectedTime) => {
+                           if (selectedTime.length > 0) {
+                             setFormData({ ...formData, pickupTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
+                           } else {
+                             setFormData({ ...formData, pickupTime: '' });
+                           }
+                         }}
+                         required
+                       />
+                     </div>
+                   )}
                  </div>
               </div>
               {/* Heure Retour */}
               <div className="relative sm:col-span-1 md:col-span-1">
                  <label className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-[-2px] text-gray-400 z-10 pointer-events-none" size={18} />
-                <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
-                  <Flatpickr
-                    options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false, disableMobile: false }} // Ensure overlay and native mobile time picker
-                    className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
-                    placeholder="HH:MM *"
-                    value={formData.returnTime}
-                    onChange={(selectedTime) => {
-                      if (selectedTime.length > 0) {
-                        setFormData({ ...formData, returnTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
-                      } else {
-                           setFormData({ ...formData, returnTime: '' }); // Permet de vider
-                      }
-                    }}
-                    required
-                  />
+                 <div className="relative"> {/* Wrapper for icon + input */}
+                   <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
+                   {isMobileView ? (
+                     <input
+                       type="time"
+                       className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       value={formData.returnTime}
+                       onChange={(e) => setFormData({ ...formData, returnTime: e.target.value })}
+                       required
+                       step="900" // 15 minutes increment
+                     />
+                   ) : (
+                     <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
+                       <Flatpickr
+                         options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false }}
+                         className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
+                         placeholder="HH:MM *"
+                         value={formData.returnTime}
+                         onChange={(selectedTime) => {
+                           if (selectedTime.length > 0) {
+                             setFormData({ ...formData, returnTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
+                           } else {
+                             setFormData({ ...formData, returnTime: '' });
+                           }
+                         }}
+                         required
+                       />
+                     </div>
+                   )}
                  </div>
               </div>
             </div> {/* Fin Ligne Pays/Station/Dates/Heures */}
