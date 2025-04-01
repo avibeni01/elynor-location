@@ -76,7 +76,7 @@ const sliderSettings = {
     {
       breakpoint: 640, // Pour grands téléphones
       settings: {
-        slidesToShow: 2,
+        slidesToShow: 1,
         dots: false,
         swipe: true,      // Ajout explicite pour cette breakpoint
         touchMove: true,  // Ajout explicite pour cette breakpoint
