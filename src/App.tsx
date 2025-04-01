@@ -421,7 +421,14 @@ function App() {
       // Open WhatsApp
       const message = generateWhatsAppMessage();
       const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
+      
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // Pour les appareils mobiles
+        window.location.href = whatsappUrl;
+      } else {
+        // Pour desktop
+        window.open(whatsappUrl, '_blank');
+      }
 
     } catch (error) {
       console.error('Erreur HubSpot:', {
