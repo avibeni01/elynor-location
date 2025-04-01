@@ -99,13 +99,28 @@ const formatStationName = (name: string) => {
   return name;
 };
 
+// Function to generate time options every 30 minutes
+const generateTimeOptions = () => {
+  const times = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const hour = h.toString().padStart(2, '0');
+      const minute = m.toString().padStart(2, '0');
+      times.push(`${hour}:${minute}`);
+    }
+  }
+  return times;
+};
+const timeOptions = generateTimeOptions();
+
+
 function App() {
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [hotelName, setHotelName] = useState(''); // State for specific hotel name input
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768); // State for mobile view detection
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768); // State for mobile view detection - Keep for Flatpickr date picker
 
   // États pour la réservation d'hôtel
   const [destination, setDestination] = useState('');
@@ -137,9 +152,9 @@ function App() {
     country: '',
     station: '',
     pickupDate: '',
-    pickupTime: '',
+    pickupTime: '09:00', // Default time
     returnDate: '',
-    returnTime: '',
+    returnTime: '09:00', // Default time
     driverAge: '',
     hasVisa: false,
     shabbatRestriction: false,
@@ -198,7 +213,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Effect to handle window resize for responsive Flatpickr options
+  // Effect to handle window resize for responsive Flatpickr options (still needed for date picker)
   useEffect(() => {
     const handleResize = () => {
       setIsMobileView(window.innerWidth < 768); // md breakpoint
@@ -365,11 +380,11 @@ function App() {
           },
           rating,
           // Remove specificHotel boolean from selectedOptions
-          selectedOptions: { 
-            pool: selectedOptions.pool, 
-            breakfast: selectedOptions.breakfast, 
-            nearBeach: selectedOptions.nearBeach 
-          }, 
+          selectedOptions: {
+            pool: selectedOptions.pool,
+            breakfast: selectedOptions.breakfast,
+            nearBeach: selectedOptions.nearBeach
+          },
           // Send hotel name to the new CRM field
           souhaite_hotel_en_particulier: hotelName || null // Send null if empty, or adjust if CRM prefers ""
         };
@@ -702,70 +717,48 @@ function App() {
               </div>
               {/* Heure Départ */}
               <div className="relative sm:col-span-1 md:col-span-1">
-                 <label className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
-                 <div className="relative"> {/* Wrapper for icon + input */}
+                 <label htmlFor="pickupTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
+                 <div className="relative"> {/* Wrapper for icon + select */}
                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
-                   {isMobileView ? (
-                     <input
-                       type="time"
-                       className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value={formData.pickupTime}
-                       onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                       required
-                       step="900" // 15 minutes increment
-                     />
-                   ) : (
-                     <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
-                       <Flatpickr
-                         options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false }}
-                         className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
-                         placeholder="HH:MM *"
-                         value={formData.pickupTime}
-                         onChange={(selectedTime) => {
-                           if (selectedTime.length > 0) {
-                             setFormData({ ...formData, pickupTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
-                           } else {
-                             setFormData({ ...formData, pickupTime: '' });
-                           }
-                         }}
-                         required
-                       />
-                     </div>
-                   )}
+                   <select
+                     id="pickupTime"
+                     className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                     value={formData.pickupTime}
+                     onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+                     required
+                   >
+                     <option value="">HH:MM *</option>
+                     {timeOptions.map(time => (
+                       <option key={time} value={time}>{time}</option>
+                     ))}
+                   </select>
+                   {/* Custom arrow */}
+                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                   </div>
                  </div>
               </div>
               {/* Heure Retour */}
               <div className="relative sm:col-span-1 md:col-span-1">
-                 <label className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
-                 <div className="relative"> {/* Wrapper for icon + input */}
+                 <label htmlFor="returnTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
+                 <div className="relative"> {/* Wrapper for icon + select */}
                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
-                   {isMobileView ? (
-                     <input
-                       type="time"
-                       className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value={formData.returnTime}
-                       onChange={(e) => setFormData({ ...formData, returnTime: e.target.value })}
-                       required
-                       step="900" // 15 minutes increment
-                     />
-                   ) : (
-                     <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent relative">
-                       <Flatpickr
-                         options={{ enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minuteIncrement: 15, static: false }}
-                         className="w-full flatpickr-input bg-transparent outline-none text-sm md:text-base border-none"
-                         placeholder="HH:MM *"
-                         value={formData.returnTime}
-                         onChange={(selectedTime) => {
-                           if (selectedTime.length > 0) {
-                             setFormData({ ...formData, returnTime: selectedTime[0].toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) });
-                           } else {
-                             setFormData({ ...formData, returnTime: '' });
-                           }
-                         }}
-                         required
-                       />
-                     </div>
-                   )}
+                   <select
+                     id="returnTime"
+                     className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                     value={formData.returnTime}
+                     onChange={(e) => setFormData({ ...formData, returnTime: e.target.value })}
+                     required
+                   >
+                     <option value="">HH:MM *</option>
+                     {timeOptions.map(time => (
+                       <option key={time} value={time}>{time}</option>
+                     ))}
+                   </select>
+                   {/* Custom arrow */}
+                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                   </div>
                  </div>
               </div>
             </div> {/* Fin Ligne Pays/Station/Dates/Heures */}
