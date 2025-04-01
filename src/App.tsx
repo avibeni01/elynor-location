@@ -422,12 +422,17 @@ function App() {
       const message = generateWhatsAppMessage();
       const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
       
-      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Pour les appareils mobiles
+      try {
+        // Try window.open() first
+        const newWindow = window.open(whatsappUrl, '_blank');
+        
+        // If window.open() was blocked or failed, fallback to location.href
+        if (!newWindow) {
+          window.location.href = whatsappUrl;
+        }
+      } catch (error) {
+        // Final fallback
         window.location.href = whatsappUrl;
-      } else {
-        // Pour desktop
-        window.open(whatsappUrl, '_blank');
       }
 
     } catch (error) {
