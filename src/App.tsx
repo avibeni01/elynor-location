@@ -765,7 +765,8 @@ function App() {
                 </button>
                 <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.shabbatRestriction ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <span>🚗 Le véhicule roule-t-il Chabbat ? 🚫</span>
+                  <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto" />
+                  <span>Le véhicule ne roule pas Chabbat</span>
                 </button>
               </div>
               {/* Age Conducteur and Promo Code - Now flex container on mobile */}
