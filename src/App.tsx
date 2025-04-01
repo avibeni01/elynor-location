@@ -79,8 +79,7 @@ const sliderSettings = {
         slidesToShow: 1,
         dots: false,
         swipe: true,      // Ajout explicite pour cette breakpoint
-        touchMove: true,  // Ajout explicite pour cette breakpoint
-        arrows: false  
+        touchMove: true // Ajout explicite pour cette breakpoint
       }
     }
   ]
