@@ -715,11 +715,13 @@ function App() {
                   />
                 </div>
               </div>
-              {/* Heure Départ */}
-              <div className="relative sm:col-span-1 md:col-span-1">
-                 <label htmlFor="pickupTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
-                 <div className="relative"> {/* Wrapper for icon + select */}
-                   <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
+              {/* Wrapper for Time Pickers - Spans full width on mobile, 2 cols on sm/md */}
+              <div className="col-span-1 sm:col-span-2 md:col-span-2 flex flex-row gap-2 md:gap-4">
+                {/* Heure Départ */}
+                <div className="relative flex-1"> {/* Use flex-1 to take available space */}
+                  <label htmlFor="pickupTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Départ</label>
+                  <div className="relative"> {/* Wrapper for icon + select */}
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
                    <select
                      id="pickupTime"
                      className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -735,14 +737,14 @@ function App() {
                    {/* Custom arrow */}
                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                   </div>
-                 </div>
-              </div>
-              {/* Heure Retour */}
-              <div className="relative sm:col-span-1 md:col-span-1">
-                 <label htmlFor="returnTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
-                 <div className="relative"> {/* Wrapper for icon + select */}
-                   <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
+                    </div>
+                  </div>
+                </div>
+                {/* Heure Retour */}
+                <div className="relative flex-1"> {/* Use flex-1 to take available space */}
+                  <label htmlFor="returnTime" className="block text-xs font-medium text-gray-600 mb-1">Heure Retour</label>
+                  <div className="relative"> {/* Wrapper for icon + select */}
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={18} />
                    <select
                      id="returnTime"
                      className="w-full pl-10 pr-4 py-3 border rounded-lg text-sm md:text-base appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -758,9 +760,10 @@ function App() {
                    {/* Custom arrow */}
                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                   </div>
-                 </div>
-              </div>
+                    </div>
+                  </div>
+                </div>
+              </div> {/* End Time Pickers Wrapper */}
             </div> {/* Fin Ligne Pays/Station/Dates/Heures */}
             {/* Ligne Options / Age / Promo */}
             {/* Grid 1 colonne mobile -> 4 colonnes md */}
