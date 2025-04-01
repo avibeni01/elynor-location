@@ -760,12 +760,12 @@ function App() {
               <div className="flex flex-row gap-3 md:col-span-2">
                 <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.hasVisa ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto" />
+                  <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto hidden sm:block" />
                   <span>Avez vous une Visa Première ?</span>
                 </button>
                 <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
                   className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.shabbatRestriction ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto" />
+                  <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto hidden sm:block" /> {/* Masquer l'image sur mobile avec hidden sm:block */}
                   <span>Le véhicule ne roule pas Chabbat</span>
                 </button>
               </div>
