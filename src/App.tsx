@@ -176,21 +176,6 @@ function App() {
       }
     };
 
-    useEffect(() => {
-      const whatsappButton = document.getElementById('whatsappButton');
-
-      if (whatsappButton) {
-        whatsappButton.addEventListener('click', function() {
-          const message = generateWhatsAppMessage(); // Votre fonction pour générer le message
-          const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
-          window.open(whatsappUrl, '_blank');
-        });
-      } else {
-        console.error("Le bouton WhatsApp n'a pas été trouvé dans le DOM.");
-      }
-    }, []);
-    
-
     const initializeAutocomplete = () => {
       const input = document.getElementById('destination') as HTMLInputElement;
       if (input && window.google && window.google.maps && window.google.maps.places) {
@@ -429,7 +414,9 @@ function App() {
       const dealData = await dealRes.json();
       if (!dealRes.ok) throw new Error(`Erreur création deal: ${dealData.detail}`);
 
-
+      toast.success("Votre demande a bien été envoyée !");
+      setCurrentStep(1); // Reset to first step
+      setFormSubmitted(true); // Show success message
 
       // Open WhatsApp
       setTimeout(() => {
@@ -450,9 +437,7 @@ function App() {
         document.body.removeChild(link);
       }, 300); // Délai d'une seconde pour laisser le temps au toast de s'afficher
       
-      toast.success("Votre demande a bien été envoyée !");
-      setCurrentStep(1); // Reset to first step
-      setFormSubmitted(true); // Show success message
+
 
     } catch (error) {
       console.error('Erreur HubSpot:', {
@@ -913,7 +898,6 @@ function App() {
                   <p className="text-sm">Nous vous contacterons bientôt. Vous avez été redirigé vers WhatsApp pour confirmer.</p>
                   {/* Ajouter un bouton pour recommencer si besoin */}
                   <button onClick={() => { setFormSubmitted(false); setCurrentStep(1); /* Reset other states if needed */ }} className="mt-2 text-sm text-blue-600 underline">Faire une nouvelle demande</button>
-                  <button id="whatsappButton">Contactez-nous sur WhatsApp</button>
               </div>
           )}
 
