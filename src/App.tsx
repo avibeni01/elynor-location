@@ -509,7 +509,7 @@ Téléphone: ${formData.phone}`;
     if (isContactInfoComplete) {
       // Pour éviter les envois multiples, on pourrait ajouter un flag
       console.log("Contact info complete - ready to submit to CRM when user clicks WhatsApp button");
-      setShouldSubmitToCRM(true);
+      handleCRMSubmit()
     }
   }, [formData.firstName, formData.lastName, formData.email, formData.phone]);
 
