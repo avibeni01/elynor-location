@@ -112,10 +112,6 @@ const timeOptions = generateTimeOptions();
 
 
 function App() {
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  };
-
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,6 +164,58 @@ function App() {
   const selectedCountry = RENTAL_COUNTRIES.find(country => country.Item1 === formData.country);
   const stationsToDisplay = selectedCountry ? stations[selectedCountry.Item2 as keyof typeof stations]?.data || [] : [];
   const visaLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg";
+
+  const openWhatsApp = (phoneNumber: string, message: string) => {
+    // Encode le message de manière simple et fiable
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Différentes méthodes pour ouvrir WhatsApp, du plus fiable au moins fiable
+    const fallbackLinks = [
+      `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`,
+      `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`,
+      `https://wa.me/${phoneNumber}?text=${encodedMessage}`
+    ];
+    
+    console.log('Tentative d\'ouverture WhatsApp avec message:', message);
+    
+    // Fonction pour essayer le lien suivant en cas d'échec
+    const tryNextLink = (index = 0) => {
+      if (index >= fallbackLinks.length) {
+        // Si tous les liens ont échoué, affiche une alerte avec instructions
+        alert(`Impossible d'ouvrir WhatsApp automatiquement. Veuillez ouvrir WhatsApp manuellement et contacter le +${phoneNumber}.`);
+        return;
+      }
+      
+      const currentLink = fallbackLinks[index];
+      console.log(`Essai link ${index + 1}:`, currentLink);
+      
+      // Sur mobile, utiliser window.location.href pour forcer la redirection
+      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        try {
+          window.location.href = currentLink;
+          // Ne peut pas vérifier si ça a fonctionné sur mobile via redirection
+        } catch (e) {
+          console.error('Erreur avec window.location.href:', e);
+          setTimeout(() => tryNextLink(index + 1), 500);
+        }
+      } else {
+        // Sur desktop, utiliser window.open
+        try {
+          const newWindow = window.open(currentLink, '_blank');
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            console.log('window.open a échoué, essai suivant...');
+            setTimeout(() => tryNextLink(index + 1), 500);
+          }
+        } catch (e) {
+          console.error('Erreur avec window.open:', e);
+          setTimeout(() => tryNextLink(index + 1), 500);
+        }
+      }
+    };
+    
+    // Commencer avec le premier lien
+    tryNextLink();
+  };
 
   useEffect(() => {
     const loadGoogleMapsScript = () => {
@@ -423,37 +471,13 @@ function App() {
       setFormSubmitted(true); // Show success message
 
       // Open WhatsApp
-setTimeout(() => {
-  const message = generateWhatsAppMessage();
-  const phoneNumber = '972584140489'; // Assurez-vous que c'est le bon numéro
-  
-  // Créer l'URL WhatsApp en fonction du device
-  const whatsappUrl = isMobile()
-    ? `whatsapp://send?phone=${phoneNumber}&text=${message}`
-    : `https://wa.me/${phoneNumber}?text=${message}`;
-  
-  console.log("URL WhatsApp:", whatsappUrl); // Pour le débogage
-  
-  // Pour les appareils mobiles, utiliser une méthode plus fiable
-  if (isMobile()) {
-    window.location.href = whatsappUrl;
-  } else {
-    // Pour desktop, essayer d'abord window.open
-    const newWindow = window.open(whatsappUrl, '_blank');
-    
-    // Si window.open échoue, créer un lien et cliquer dessus
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      const link = document.createElement('a');
-      link.href = whatsappUrl;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
       setTimeout(() => {
-        document.body.removeChild(link);
-      }, 100);
-    }
-  }
-}, 300); // Délai court pour laisser le temps au toast de s'afficher
+        const message = generateWhatsAppMessage();
+        const phoneNumber = "972584140489"; // Sans le +
+        
+        // Tentative d'ouverture de WhatsApp avec le message
+        openWhatsApp(phoneNumber, message);
+      }, 300);
       
 
 
