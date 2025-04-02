@@ -112,6 +112,10 @@ const timeOptions = generateTimeOptions();
 
 
 function App() {
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -419,23 +423,37 @@ function App() {
       setFormSubmitted(true); // Show success message
 
       // Open WhatsApp
-      setTimeout(() => {
-      const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
-      console.log("URL WhatsApp:", whatsappUrl); // Vérifiez l'URL générée
-      const newWindow = window.open(whatsappUrl, '_blank');
-      if (!newWindow) {
-        console.error("Erreur: Impossible d'ouvrir la fenêtre WhatsApp.");
-      }
-      
-       // Créer un lien temporaire et le cliquer
+setTimeout(() => {
+  const message = generateWhatsAppMessage();
+  const phoneNumber = '972584140489'; // Assurez-vous que c'est le bon numéro
+  
+  // Créer l'URL WhatsApp en fonction du device
+  const whatsappUrl = isMobile()
+    ? `whatsapp://send?phone=${phoneNumber}&text=${message}`
+    : `https://wa.me/${phoneNumber}?text=${message}`;
+  
+  console.log("URL WhatsApp:", whatsappUrl); // Pour le débogage
+  
+  // Pour les appareils mobiles, utiliser une méthode plus fiable
+  if (isMobile()) {
+    window.location.href = whatsappUrl;
+  } else {
+    // Pour desktop, essayer d'abord window.open
+    const newWindow = window.open(whatsappUrl, '_blank');
+    
+    // Si window.open échoue, créer un lien et cliquer dessus
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
       const link = document.createElement('a');
-        link.href = whatsappUrl;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
+      link.href = whatsappUrl;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
         document.body.removeChild(link);
-      }, 300); // Délai d'une seconde pour laisser le temps au toast de s'afficher
+      }, 100);
+    }
+  }
+}, 300); // Délai court pour laisser le temps au toast de s'afficher
       
 
 
@@ -454,34 +472,42 @@ function App() {
   const generateWhatsAppMessage = () => {
     let message = '';
     if (activeTab === 'hotel') {
-      message = `Réservation Hôtel:\n
-  Destination: ${destination}\n
-  Dates: ${dates.join(' - ')}\n
-  Occupants: ${getOccupantsSummary()}\n
-  Étoiles: ${rating}⭐\n
-  Options:\n
-  - Piscine: ${selectedOptions.pool ? 'Oui' : 'Non'}\n
-  - Petit-déjeuner: ${selectedOptions.breakfast ? 'Oui' : 'Non'}\n
-  - Proche de la mer: ${selectedOptions.nearBeach ? 'Oui' : 'Non'}\n
-  Hôtel particulier: ${hotelName ? hotelName : 'Non spécifié'}\n`; // Use hotelName state
+      message = `*Réservation Hôtel*%0A%0A` +
+        `🏨 *Destination:* ${encodeURIComponent(destination)}%0A` +
+        `📅 *Dates:* ${encodeURIComponent(dates.join(' - '))}%0A` +
+        `👥 *Occupants:* ${encodeURIComponent(getOccupantsSummary().replace(/\n/g, ', '))}%0A` +
+        `⭐ *Étoiles:* ${rating}%0A%0A` +
+        `*Options:*%0A` +
+        `🏊 Piscine: ${selectedOptions.pool ? '✅' : '❌'}%0A` +
+        `🍳 Petit-déjeuner: ${selectedOptions.breakfast ? '✅' : '❌'}%0A` +
+        `🏖️ Proche de la mer: ${selectedOptions.nearBeach ? '✅' : '❌'}%0A` +
+        `🏨 Hôtel particulier: ${hotelName ? `✅ ${encodeURIComponent(hotelName)}` : '❌'}`;
     } else { // 'car'
       const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
       const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
-      message = `Location Voiture:\n
-  Pays: ${formData.country}\n
-  Station: ${stationName}\n
-  Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
-  Âge conducteur: ${formData.driverAge}\n
-  Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
-  Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
-      message += `\nVéhicule sélectionné: ${selectedVehicle ? selectedVehicle["Nom du véhicule"] : 'Aucun'}\n`;
+      
+      message = `*Location Voiture*%0A%0A` +
+        `🌍 *Pays:* ${encodeURIComponent(formData.country)}%0A` +
+        `📍 *Station:* ${encodeURIComponent(stationName)}%0A` +
+        `📅 *Dates:* Du ${encodeURIComponent(formData.pickupDate)} ${formData.pickupTime} au ${encodeURIComponent(formData.returnDate)} ${formData.returnTime}%0A` +
+        `👤 *Âge conducteur:* ${formData.driverAge}%0A` +
+        `💳 *Visa Premier:* ${formData.hasVisa ? '✅' : '❌'}%0A` +
+        `✡️ *Restriction Shabbat:* ${formData.shabbatRestriction ? '✅' : '❌'}`;
+      
+      if (selectedVehicle) {
+        message += `%0A🚗 *Véhicule sélectionné:* ${encodeURIComponent(selectedVehicle["Nom du véhicule"])}`;
+      }
     }
-    message += `\nContact:\n
-  Nom: ${formData.firstName} ${formData.lastName}\n
-  Email: ${formData.email}\n
-  Téléphone: ${formData.phone}\n
-  Notes: ${formData.notes}`;
-
+  
+    message += `%0A%0A*Contact:*%0A` +
+      `👤 *Nom:* ${encodeURIComponent(formData.firstName)} ${encodeURIComponent(formData.lastName)}%0A` +
+      `📧 *Email:* ${encodeURIComponent(formData.email)}%0A` +
+      `📞 *Téléphone:* ${encodeURIComponent(formData.phone)}`;
+    
+    if (formData.notes) {
+      message += `%0A📝 *Notes:* ${encodeURIComponent(formData.notes)}`;
+    }
+  
     return message;
   };
 
