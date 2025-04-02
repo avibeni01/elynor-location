@@ -418,22 +418,6 @@ function App() {
       setCurrentStep(1); // Reset to first step
       setFormSubmitted(true); // Show success message
 
-      // Open WhatsApp
-      setTimeout(() => {
-        const message = generateWhatsAppMessage();
-        const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
-        console.log("URL WhatsApp:", whatsappUrl); // Vérifiez l'URL générée
-
-        // Créer un lien temporaire et le cliquer
-        const link = document.createElement('a');
-        link.href = whatsappUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer'; // Ajout de rel pour des raisons de sécurité
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 300); // Délai d'une seconde pour laisser le temps au toast de s'afficher
-
 
     } catch (error) {
       console.error('Erreur HubSpot:', {
@@ -929,8 +913,8 @@ function App() {
                      <ArrowLeft size={16} /> Précédent
                   </button>
 
-                  {/* Bouton Suivant / Soumettre */}
-                  {!isFinalStep ? (
+                    {/* Bouton Suivant / Soumettre */}
+                    {!isFinalStep ? (
                       <button
                         type="button"
                         onClick={handleNextStep}
@@ -939,17 +923,44 @@ function App() {
                       >
                         Suivant <ArrowRight size={16} />
                       </button>
-                  ) : (
+                    ) : (
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          if (!validateFinalStep() || isSubmitting) return;
+                          
+                          setIsSubmitting(true);
+                          try {
+                            // Créer le contact et le deal comme avant
+                            await handleSubmit(e);
+                            
+                            // Après succès, ouvrir WhatsApp
+                            const message = generateWhatsAppMessage();
+                            const whatsappUrl = `https://wa.me/972584140489?text=${encodeURIComponent(message)}`;
+                            
+                            // Détection mobile et redirection appropriée
+                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                            
+                            if (isMobile) {
+                              window.location.href = whatsappUrl;
+                            } else {
+                              window.open(whatsappUrl, '_blank');
+                            }
+                          } catch (error) {
+                            toast.error("Une erreur est survenue");
+                          } finally {
+                            setIsSubmitting(false);
+                          }
+                        }}
                         className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
                         disabled={!validateFinalStep() || isSubmitting}
                       >
                         {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
                       </button>
-                  )}
-                </div>
-              </form>
+                    )}
+                    </div>
+                    </form>
             </>
           )}
         </div>
