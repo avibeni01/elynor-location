@@ -263,7 +263,7 @@ function App() {
 
   const [whatsappLink, setWhatsappLink] = useState('');
   const [showWhatsappButton, setShowWhatsappButton] = useState(false);
-  
+
   // --- Step Validation ---
   const validateStep1 = () => {
     if (activeTab === 'hotel') {
@@ -453,39 +453,47 @@ function App() {
     }
   };
 
-  const generateWhatsAppMessage = () => {
-    let message = '';
-    if (activeTab === 'hotel') {
-      message = `Réservation Hôtel:\n
-  Destination: ${destination}\n
-  Dates: ${dates.join(' - ')}\n
-  Occupants: ${getOccupantsSummary()}\n
-  Étoiles: ${rating}⭐\n
-  Options:\n
-  - Piscine: ${selectedOptions.pool ? 'Oui' : 'Non'}\n
-  - Petit-déjeuner: ${selectedOptions.breakfast ? 'Oui' : 'Non'}\n
-  - Proche de la mer: ${selectedOptions.nearBeach ? 'Oui' : 'Non'}\n
-  Hôtel particulier: ${hotelName ? hotelName : 'Non spécifié'}\n`; // Use hotelName state
-    } else { // 'car'
-      const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
-      const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
-      message = `Location Voiture:\n
-  Pays: ${formData.country}\n
-  Station: ${stationName}\n
-  Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
-  Âge conducteur: ${formData.driverAge}\n
-  Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
-  Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
-      message += `\nVéhicule sélectionné: ${selectedVehicle ? selectedVehicle["Nom du véhicule"] : 'Aucun'}\n`;
+const generateWhatsAppMessage = () => {
+  let message = '';
+  if (activeTab === 'hotel') {
+    message = `*Réservation Hôtel*%0A%0A` +
+      `🏨 *Destination:* ${encodeURIComponent(destination)}%0A` +
+      `📅 *Dates:* ${encodeURIComponent(dates.join(' - '))}%0A` +
+      `👥 *Occupants:* ${encodeURIComponent(getOccupantsSummary().replace(/\n/g, ', '))}%0A` +
+      `⭐ *Étoiles:* ${rating}%0A%0A` +
+      `*Options:*%0A` +
+      `🏊 Piscine: ${selectedOptions.pool ? '✅' : '❌'}%0A` +
+      `🍳 Petit-déjeuner: ${selectedOptions.breakfast ? '✅' : '❌'}%0A` +
+      `🏖️ Proche de la mer: ${selectedOptions.nearBeach ? '✅' : '❌'}%0A` +
+      `🏨 Hôtel particulier: ${hotelName ? `✅ ${encodeURIComponent(hotelName)}` : '❌'}`;
+  } else { // 'car'
+    const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
+    const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
+    
+    message = `*Location Voiture*%0A%0A` +
+      `🌍 *Pays:* ${encodeURIComponent(formData.country)}%0A` +
+      `📍 *Station:* ${encodeURIComponent(stationName)}%0A` +
+      `📅 *Dates:* Du ${encodeURIComponent(formData.pickupDate)} ${formData.pickupTime} au ${encodeURIComponent(formData.returnDate)} ${formData.returnTime}%0A` +
+      `👤 *Âge conducteur:* ${formData.driverAge}%0A` +
+      `💳 *Visa Premier:* ${formData.hasVisa ? '✅' : '❌'}%0A` +
+      `✡️ *Restriction Shabbat:* ${formData.shabbatRestriction ? '✅' : '❌'}`;
+    
+    if (selectedVehicle) {
+      message += `%0A🚗 *Véhicule sélectionné:* ${encodeURIComponent(selectedVehicle["Nom du véhicule"])}`;
     }
-    message += `\nContact:\n
-  Nom: ${formData.firstName} ${formData.lastName}\n
-  Email: ${formData.email}\n
-  Téléphone: ${formData.phone}\n
-  Notes: ${formData.notes}`;
+  }
 
-    return message;
-  };
+  message += `%0A%0A*Contact:*%0A` +
+    `👤 *Nom:* ${encodeURIComponent(formData.firstName)} ${encodeURIComponent(formData.lastName)}%0A` +
+    `📧 *Email:* ${encodeURIComponent(formData.email)}%0A` +
+    `📞 *Téléphone:* ${encodeURIComponent(formData.phone)}`;
+  
+  if (formData.notes) {
+    message += `%0A📝 *Notes:* ${encodeURIComponent(formData.notes)}`;
+  }
+
+  return message;
+};
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
