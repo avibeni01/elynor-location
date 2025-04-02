@@ -375,6 +375,12 @@ Téléphone: ${formData.phone}`;
       country,
     } = formData;
       
+    // Convertir l'âge en nombre valide pour le CRM
+      let ageValue = driverAge;
+      if (driverAge === "25+") {
+        ageValue = "25"; // Convertir "25+" en "25" pour que le CRM l'accepte
+      }
+        
       // Create Contact
       const contactRes = await fetch('/api/createContact', {
         method: 'POST',
@@ -387,6 +393,7 @@ Téléphone: ${formData.phone}`;
           preferences_client: notes,
           le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
           avez_vous_une_visa_premi_re_: hasVisa,
+          age: ageValue,
           nationalite: "Francais"
         })
       });
