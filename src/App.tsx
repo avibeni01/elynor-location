@@ -467,9 +467,6 @@ Téléphone: ${formData.phone}`;
     setIsSubmitting(true);
     
     try {
-      // Envoi des données au CRM avant d'ouvrir WhatsApp
-      await handleCRMSubmit();
-      
       // Générer le message WhatsApp
       const message = generateWhatsAppMessage();
       const phoneNumber = "972584140489";
@@ -515,25 +512,6 @@ Téléphone: ${formData.phone}`;
       setShouldSubmitToCRM(true);
     }
   }, [formData.firstName, formData.lastName, formData.email, formData.phone]);
-
-
-  // Utilisez un effet pour envoyer les données au CRM quand shouldSubmitToCRM change
-useEffect(() => {
-  if (shouldSubmitToCRM) {
-    // Réinitialiser l'état pour éviter plusieurs envois
-    setShouldSubmitToCRM(false);
-    
-    // Appeler handleCRMSubmit en arrière-plan
-    handleCRMSubmit()
-      .then(() => {
-        console.log("Données envoyées au CRM avec succès");
-      })
-      .catch(error => {
-        console.error("Erreur lors de l'envoi au CRM:", error);
-        // Ne pas montrer d'erreur à l'utilisateur pour ne pas le perturber
-      });
-  }
-}, [shouldSubmitToCRM]);
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
