@@ -113,6 +113,7 @@ const timeOptions = generateTimeOptions();
 
 function App() {
   const [shouldSubmitToCRM, setShouldSubmitToCRM] = useState(false);
+  const [crmSubmitted, setCrmSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -498,20 +499,12 @@ Téléphone: ${formData.phone}`;
   };
 
   useEffect(() => {
-    // Vérifier si tous les champs requis sont remplis
-    const isContactInfoComplete = formData.firstName && 
-                                 formData.lastName && 
-                                 formData.email && 
-                                 formData.phone;
-                                 
-    // Si les informations sont complètes et que nous sommes sur l'étape finale
-    // on peut préparer l'envoi au CRM
-    if (isContactInfoComplete) {
-      // Pour éviter les envois multiples, on pourrait ajouter un flag
-      console.log("Contact info complete - ready to submit to CRM when user clicks WhatsApp button");
-      handleCRMSubmit()
+    if (validateFinalStep() && !crmSubmitted) {
+      console.log("Contact info complete - submitting to CRM once");
+      setCrmSubmitted(true);
+      handleCRMSubmit();
     }
-  }, [formData.firstName, formData.lastName, formData.email, formData.phone]);
+  }, [formData.firstName, formData.lastName, formData.email, formData.phone, crmSubmitted]);
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
