@@ -112,6 +112,7 @@ const timeOptions = generateTimeOptions();
 
 
 function App() {
+  const [shouldSubmitToCRM, setShouldSubmitToCRM] = useState(false);
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -460,15 +461,12 @@ Téléphone: ${formData.phone}`;
   };
 
   // Remplacer la fonction handleSubmitAndOpenWhatsApp par celle-ci :
-  const handleOpenWhatsApp = async () => {
+  const handleOpenWhatsApp = () => {
     if (!validateFinalStep() || isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
-      // Envoi des données au CRM avant d'ouvrir WhatsApp
-      await handleCRMSubmit();
-      
       // Générer le message WhatsApp
       const message = generateWhatsAppMessage();
       const phoneNumber = "972584140489";
@@ -480,8 +478,11 @@ Téléphone: ${formData.phone}`;
         ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
         : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
       
-      // Ouvrir WhatsApp directement
+      // Ouvrir WhatsApp directement - c'est une action initiée par l'utilisateur
       window.open(whatsappUrl, '_blank');
+      
+      // Marquer que les données doivent être envoyées au CRM
+      setShouldSubmitToCRM(true);
       
       // Réinitialiser les états
       setCurrentStep(1);
@@ -492,12 +493,30 @@ Téléphone: ${formData.phone}`;
       toast.success("WhatsApp a été ouvert pour finaliser votre demande !");
       
     } catch (error) {
-      console.error('Erreur lors de l\'envoi des données ou de l\'ouverture de WhatsApp:', error);
-      toast.error("Une erreur est survenue. Veuillez réessayer.");
+      console.error('Erreur lors de l\'ouverture de WhatsApp:', error);
+      toast.error("Impossible d'ouvrir WhatsApp. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Utilisez un effet pour envoyer les données au CRM quand shouldSubmitToCRM change
+useEffect(() => {
+  if (shouldSubmitToCRM) {
+    // Réinitialiser l'état pour éviter plusieurs envois
+    setShouldSubmitToCRM(false);
+    
+    // Appeler handleCRMSubmit en arrière-plan
+    handleCRMSubmit()
+      .then(() => {
+        console.log("Données envoyées au CRM avec succès");
+      })
+      .catch(error => {
+        console.error("Erreur lors de l'envoi au CRM:", error);
+        // Ne pas montrer d'erreur à l'utilisateur pour ne pas le perturber
+      });
+  }
+}, [shouldSubmitToCRM]);
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
