@@ -387,7 +387,6 @@ Téléphone: ${formData.phone}`;
           preferences_client: notes,
           le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
           avez_vous_une_visa_premi_re_: hasVisa,
-          age: driverAge,
           nationalite: "Francais"
         })
       });
