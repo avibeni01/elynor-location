@@ -262,7 +262,6 @@ function App() {
   };
 
   const [whatsappLink, setWhatsappLink] = useState('');
-  const [showWhatsappButton, setShowWhatsappButton] = useState(false);
   
   // --- Step Validation ---
   const validateStep1 = () => {
@@ -306,18 +305,66 @@ function App() {
     }
   };
 
-  // --- Submission ---
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Fonction pour générer le message WhatsApp
+  const generateWhatsAppMessage = () => {
+    let message = '';
+    if (activeTab === 'hotel') {
+      message = `Réservation Hôtel:\n
+Destination: ${destination}\n
+Dates: ${dates.join(' - ')}\n
+Occupants: ${getOccupantsSummary().replace(/\n/g, ', ')}\n
+Étoiles: ${rating}⭐\n
+Options:\n
+- Piscine: ${selectedOptions.pool ? 'Oui' : 'Non'}\n
+- Petit-déjeuner: ${selectedOptions.breakfast ? 'Oui' : 'Non'}\n
+- Proche de la mer: ${selectedOptions.nearBeach ? 'Oui' : 'Non'}\n
+Hôtel particulier: ${hotelName ? hotelName : 'Non spécifié'}\n`;
+    } else { // 'car'
+      const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
+      const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
+      message = `Location Voiture:\n
+Pays: ${formData.country}\n
+Station: ${stationName}\n
+Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
+Âge conducteur: ${formData.driverAge}\n
+Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
+Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
+      
+      if (selectedVehicle) {
+        message += `\nVéhicule sélectionné: ${selectedVehicle["Nom du véhicule"]}\n`;
+      }
+    }
+    
+    message += `\nContact:\n
+Nom: ${formData.firstName} ${formData.lastName}\n
+Email: ${formData.email}\n
+Téléphone: ${formData.phone}`;
+    
+    if (formData.notes) {
+      message += `\nNotes: ${formData.notes}`;
+    }
 
-    // Validate final step based on active tab and current step
-    const isFinalStepValid = (activeTab === 'hotel' && currentStep === 2 && validateFinalStep()) ||
-                             (activeTab === 'car' && currentStep === 3 && validateFinalStep());
+    return message;
+  };
 
-    if (!isFinalStepValid || isSubmitting) return; // Prevent submission if not valid or already submitting
+  // Fonction pour générer le lien WhatsApp
+  const generateWhatsAppLink = () => {
+    const message = generateWhatsAppMessage();
+    const phoneNumber = "972584140489";
+    const encodedMessage = encodeURIComponent(message);
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return isMobile 
+      ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
+      : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+  };
 
+  // Nouvelle fonction de soumission combinée avec ouverture WhatsApp
+  const handleSubmitAndOpenWhatsApp = async () => {
+    if (!validateFinalStep() || isSubmitting) return;
+    
     setIsSubmitting(true);
-
+    
     const {
       firstName,
       lastName,
@@ -327,10 +374,13 @@ function App() {
       hasVisa,
       shabbatRestriction,
       driverAge,
-      country, // Needed for contact creation
+      country,
     } = formData;
 
     try {
+      // Créer le lien WhatsApp d'abord pour qu'il soit prêt
+      const whatsappUrl = generateWhatsAppLink();
+      
       // Create Contact
       const contactRes = await fetch('/api/createContact', {
         method: 'POST',
@@ -344,9 +394,10 @@ function App() {
           le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
           avez_vous_une_visa_premi_re_: hasVisa,
           age: driverAge,
-          nationalite: "Francais" // Assuming default, adjust if needed
+          nationalite: "Francais"
         })
       });
+      
       const contactData = await contactRes.json();
       if (!contactRes.ok) throw new Error(`Erreur création contact: ${contactData.detail}`);
       const contactId = contactData.contactId;
@@ -373,22 +424,19 @@ function App() {
           destination,
           check_in_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[0]),
           check_out_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[1]),
-          occupants: { // Send individual counts
+          occupants: {
             rooms: occupants.rooms,
             adults: occupants.adults,
             children: occupants.children,
             babies: occupants.babies,
-            // childrenAges: occupants.childrenAges // Maybe send ages too if needed by CRM?
           },
           rating,
-          // Remove specificHotel boolean from selectedOptions
           selectedOptions: {
             pool: selectedOptions.pool,
             breakfast: selectedOptions.breakfast,
             nearBeach: selectedOptions.nearBeach
           },
-          // Send hotel name to the new CRM field
-          souhaite_hotel_en_particulier: hotelName || null // Send null if empty, or adjust if CRM prefers ""
+          souhaite_hotel_en_particulier: hotelName || null
         };
       } else { // 'car'
         const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
@@ -414,84 +462,37 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dealPayload)
       });
+      
       const dealData = await dealRes.json();
       if (!dealRes.ok) throw new Error(`Erreur création deal: ${dealData.detail}`);
 
+      // Succès !
       toast.success("Votre demande a bien été envoyée !");
-      setCurrentStep(1); // Reset to first step
-      setFormSubmitted(true); // Show success message
-
-      // Open WhatsApp
-      // Dans la partie try après setFormSubmitted(true):
-      setTimeout(() => {
-        const message = generateWhatsAppMessage();
-        const phoneNumber = "972584140489";
-        const encodedMessage = encodeURIComponent(message);
-        
-        // Déterminer quel lien utiliser
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const primaryLink = isMobile 
-          ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
-          : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-        
-        // Stocker le lien pour le bouton
-        setWhatsappLink(primaryLink);
-        setShowWhatsappButton(true);
-      }, 300);
       
-
-
+      // Ouvrir WhatsApp immédiatement
+      window.open(whatsappUrl, '_blank');
+      
+      // Réinitialiser les états
+      setCurrentStep(1);
+      setFormSubmitted(true);
+      setWhatsappLink(whatsappUrl); // Sauvegarder le lien pour le bouton sur l'écran de confirmation
+      
     } catch (error) {
-      console.error('Erreur HubSpot:', {
+      console.error('Erreur:', {
         error: error instanceof Error ? error.message : error,
         formData,
         timestamp: new Date().toISOString()
       });
       toast.error("Une erreur est survenue. Veuillez réessayer.");
     } finally {
-      setIsSubmitting(false); // Reset submitting state regardless of outcome
+      setIsSubmitting(false);
     }
-  };
-
-  const generateWhatsAppMessage = () => {
-    let message = '';
-    if (activeTab === 'hotel') {
-      message = `Réservation Hôtel:\n
-  Destination: ${destination}\n
-  Dates: ${dates.join(' - ')}\n
-  Occupants: ${getOccupantsSummary()}\n
-  Étoiles: ${rating}⭐\n
-  Options:\n
-  - Piscine: ${selectedOptions.pool ? 'Oui' : 'Non'}\n
-  - Petit-déjeuner: ${selectedOptions.breakfast ? 'Oui' : 'Non'}\n
-  - Proche de la mer: ${selectedOptions.nearBeach ? 'Oui' : 'Non'}\n
-  Hôtel particulier: ${hotelName ? hotelName : 'Non spécifié'}\n`; // Use hotelName state
-    } else { // 'car'
-      const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
-      const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
-      message = `Location Voiture:\n
-  Pays: ${formData.country}\n
-  Station: ${stationName}\n
-  Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
-  Âge conducteur: ${formData.driverAge}\n
-  Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
-  Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
-      message += `\nVéhicule sélectionné: ${selectedVehicle ? selectedVehicle["Nom du véhicule"] : 'Aucun'}\n`;
-    }
-    message += `\nContact:\n
-  Nom: ${formData.firstName} ${formData.lastName}\n
-  Email: ${formData.email}\n
-  Téléphone: ${formData.phone}\n
-  Notes: ${formData.notes}`;
-
-    return message;
   };
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setCurrentStep(1);
-    // Optionally reset form data here if needed
   };
 
   // --- Render Logic ---
@@ -507,7 +508,7 @@ function App() {
             <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 mb-6">
               {/* Destination */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />  {/* pointer-events-none ??? */}
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                 <input
                   id="destination"
                   type="text"
@@ -518,16 +519,16 @@ function App() {
               </div>
               {/* Dates */}
               <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />  {/* pointer-events-none ??? */}
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                 <div className="w-full pl-10 pr-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
                   <Flatpickr
                     options={{
                       mode: "range", locale: French, minDate: "today", showMonths: isMobileView ? 1 : 2, 
                       dateFormat: "d/m/Y",
-                      static: false, // avant true
-                      disableMobile: false // avant true
+                      static: false,
+                      disableMobile: false
                     }}
-                    className="w-full flatpickr-input bg-transparent outline-none border-none" // Assurer qu'il n'y a pas de double bordure
+                    className="w-full flatpickr-input bg-transparent outline-none border-none"
                     placeholder="Sélectionnez vos dates" 
                     value={dates} 
                     onChange={(selectedDates) => {
@@ -542,7 +543,7 @@ function App() {
                 <div
                   className="flex items-center justify-between p-3 border rounded-lg cursor-pointer min-h-[4rem] md:min-h-0"
                   onClick={() => setShowOccupants(!showOccupants)}
-                  aria-expanded={showOccupants} // Pour l'accessibilité ??????????
+                  aria-expanded={showOccupants}
                 >
                   <div className="flex items-center gap-2">
                     <Users size={20} className="text-gray-400 flex-shrink-0" />
@@ -552,11 +553,11 @@ function App() {
                 </div>
                 {showOccupants && (
                   <div className="absolute top-full left-0 right-0 bg-white border rounded-lg mt-1 p-4 shadow-lg z-20">
-                    <div className="space-y-3"> {/* Réduit un peu l'espacement si besoin */}
+                    <div className="space-y-3">
                       {/* Chambres */}
                       <div className="flex items-center justify-between">
                         <span>Chambres</span>
-                        <div className="flex items-center gap-2"> {/* Réduit gap si besoin */}
+                        <div className="flex items-center gap-2">
                           <button type="button" className="p-2 border rounded hover:bg-gray-100 disabled:opacity-50" onClick={() => handleOccupantChange('rooms', -1)} disabled={occupants.rooms <= 1}><Minus size={16} /></button>
                           <span className="w-8 text-center font-medium">{occupants.rooms}</span>
                           <button type="button" className="p-2 border rounded hover:bg-gray-100" onClick={() => handleOccupantChange('rooms', 1)}><Plus size={16} /></button>
@@ -622,8 +623,8 @@ function App() {
             {/* Section Options Hôtel */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {/* Étoiles */}
-              <div className="md:col-span-1"> {/* relative md:col-span-1 col-span-1" */}
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d’étoiles</label>
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'étoiles</label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star key={star} size={24}
@@ -636,12 +637,13 @@ function App() {
                 </div>
               </div>
               {/* Checkbox Options */}
-              <div className="md:col-span-2"> {/* relative md:col-span-2 col-span-1 */}
+              <div className="md:col-span-2">
                 <p className="text-sm font-medium text-gray-700 mb-1">Options de l'hôtel</p>
                 {/* Utilise flex-wrap pour passer à la ligne si besoin sur mobile */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2"> {/*flex flex-wrap gap-4 */}
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={selectedOptions.pool} onChange={(e) => setSelectedOptions(prev => ({ ...prev, pool: e.target.checked }))} className="rounded text-blue-600 focus:ring-blue-500" />
+                    <input type="checkbox" checked={selectedOptions.pool} onChange={(e) => setSelectedOptions(prev => ({ ...prev, pool: e.target.checked }))} className="rounded text-blue-
+                    600 focus:ring-blue-500" />
                     <span>Piscine</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -923,7 +925,6 @@ function App() {
                 onClick={() => { 
                   setFormSubmitted(false); 
                   setCurrentStep(1);
-                  setShowWhatsappButton(false);
                   setWhatsappLink('');
                 }} 
                 className="mt-4 text-sm text-blue-600 underline"
@@ -950,7 +951,7 @@ function App() {
               </div>
   
               {/* Contenu de l'étape */}
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={(e) => e.preventDefault()}>
                 {renderStepContent()}
   
                 {/* Boutons de Navigation / Soumission */}
@@ -976,13 +977,17 @@ function App() {
                         Suivant <ArrowRight size={16} />
                       </button>
                   ) : (
-                      <button
-                        type="submit"
-                        className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
-                        disabled={!validateFinalStep() || isSubmitting}
-                      >
-                        {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
-                      </button>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
+                      disabled={!validateFinalStep() || isSubmitting}
+                      onClick={handleSubmitAndOpenWhatsApp}
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                      {isSubmitting ? 'Envoi en cours...' : 'Envoyer et ouvrir WhatsApp'}
+                    </button>
                   )}
                 </div>
               </form>
