@@ -359,172 +359,145 @@ Téléphone: ${formData.phone}`;
       : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
   };
 
-  // Nouvelle fonction de soumission combinée avec ouverture WhatsApp
-  // const handleSubmitAndOpenWhatsApp = async () => {
-  //   if (!validateFinalStep() || isSubmitting) return;
-    
-  //   setIsSubmitting(true);
-    
-  //   const {
-  //     firstName,
-  //     lastName,
-  //     email,
-  //     phone,
-  //     notes,
-  //     hasVisa,
-  //     shabbatRestriction,
-  //     driverAge,
-  //     country,
-  //   } = formData;
-
-  //   try {
-  //     // Créer le lien WhatsApp d'abord pour qu'il soit prêt
-  //     const whatsappUrl = generateWhatsAppLink();
+  // fonction de soumission crm
+  const handleCRMSubmit = async () => {
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      notes,
+      hasVisa,
+      shabbatRestriction,
+      driverAge,
+      country,
+    } = formData;
       
-  //     // Create Contact
-  //     const contactRes = await fetch('/api/createContact', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({
-  //         firstName,
-  //         lastName,
-  //         email,
-  //         phone,
-  //         preferences_client: notes,
-  //         le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
-  //         avez_vous_une_visa_premi_re_: hasVisa,
-  //         age: driverAge,
-  //         nationalite: "Francais"
-  //       })
-  //     });
+      // Create Contact
+      const contactRes = await fetch('/api/createContact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          preferences_client: notes,
+          le_v_hicule_ne_roule_pas_le_chabat: shabbatRestriction,
+          avez_vous_une_visa_premi_re_: hasVisa,
+          age: driverAge,
+          nationalite: "Francais"
+        })
+      });
       
-  //     const contactData = await contactRes.json();
-  //     if (!contactRes.ok) throw new Error(`Erreur création contact: ${contactData.detail}`);
-  //     const contactId = contactData.contactId;
+      const contactData = await contactRes.json();
+      if (!contactRes.ok) throw new Error(`Erreur création contact: ${contactData.detail}`);
+      const contactId = contactData.contactId;
 
-  //     // Helper function to format dd/mm/yyyy to yyyy-mm-dd
-  //     const formatDDMMYYYYToYYYYMMDD = (dateStr: string | null | undefined): string | null => {
-  //       if (!dateStr) return null;
-  //       const parts = dateStr.split('/');
-  //       if (parts.length !== 3) return null;
-  //       return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  //     };
+      // Helper function to format dd/mm/yyyy to yyyy-mm-dd
+      const formatDDMMYYYYToYYYYMMDD = (dateStr: string | null | undefined): string | null => {
+        if (!dateStr) return null;
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return null;
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      };
 
-  //     // Prepare Deal Payload
-  //     let dealPayload: any = {
-  //       contactId,
-  //       firstName,
-  //       lastName,
-  //       activeTab,
-  //     };
+      // Prepare Deal Payload
+      let dealPayload: any = {
+        contactId,
+        firstName,
+        lastName,
+        activeTab,
+      };
 
-  //     if (activeTab === 'hotel') {
-  //       dealPayload = {
-  //         ...dealPayload,
-  //         destination,
-  //         check_in_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[0]),
-  //         check_out_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[1]),
-  //         occupants: {
-  //           rooms: occupants.rooms,
-  //           adults: occupants.adults,
-  //           children: occupants.children,
-  //           babies: occupants.babies,
-  //         },
-  //         rating,
-  //         selectedOptions: {
-  //           pool: selectedOptions.pool,
-  //           breakfast: selectedOptions.breakfast,
-  //           nearBeach: selectedOptions.nearBeach
-  //         },
-  //         souhaite_hotel_en_particulier: hotelName || null
-  //       };
-  //     } else { // 'car'
-  //       const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
-  //       const stationName = selectedStationObject ? selectedStationObject.Item2 : formData.station;
+      if (activeTab === 'hotel') {
+        dealPayload = {
+          ...dealPayload,
+          destination,
+          check_in_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[0]),
+          check_out_date_str: formatDDMMYYYYToYYYYMMDD(dates?.[1]),
+          occupants: {
+            rooms: occupants.rooms,
+            adults: occupants.adults,
+            children: occupants.children,
+            babies: occupants.babies,
+          },
+          rating,
+          selectedOptions: {
+            pool: selectedOptions.pool,
+            breakfast: selectedOptions.breakfast,
+            nearBeach: selectedOptions.nearBeach
+          },
+          souhaite_hotel_en_particulier: hotelName || null
+        };
+      } else { // 'car'
+        const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
+        const stationName = selectedStationObject ? selectedStationObject.Item2 : formData.station;
 
-  //       dealPayload = {
-  //         ...dealPayload,
-  //         selectedVehicle,
-  //         stationName: stationName,
-  //         check_in_date_str: formatDDMMYYYYToYYYYMMDD(formData.pickupDate),
-  //         check_out_date_str: formatDDMMYYYYToYYYYMMDD(formData.returnDate),
-  //         pickupTime: formData.pickupTime,
-  //         returnTime: formData.returnTime,
-  //         driverAge: formData.driverAge,
-  //         hasVisa: formData.hasVisa,
-  //         shomer_shabbat: formData.shabbatRestriction
-  //       };
-  //     }
+        dealPayload = {
+          ...dealPayload,
+          selectedVehicle,
+          stationName: stationName,
+          check_in_date_str: formatDDMMYYYYToYYYYMMDD(formData.pickupDate),
+          check_out_date_str: formatDDMMYYYYToYYYYMMDD(formData.returnDate),
+          pickupTime: formData.pickupTime,
+          returnTime: formData.returnTime,
+          driverAge: formData.driverAge,
+          hasVisa: formData.hasVisa,
+          shomer_shabbat: formData.shabbatRestriction
+        };
+      }
 
-  //     // Create Deal
-  //     const dealRes = await fetch('/api/createDeal', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(dealPayload)
-  //     });
+      // Create Deal
+      const dealRes = await fetch('/api/createDeal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dealPayload)
+      });
       
-  //     const dealData = await dealRes.json();
-  //     if (!dealRes.ok) throw new Error(`Erreur création deal: ${dealData.detail}`);
-
-  //     // Succès !
-  //     toast.success("Votre demande a bien été envoyée !");
-      
-  //     // Ouvrir WhatsApp immédiatement
-  //     window.open(whatsappUrl, '_blank');
-      
-  //     // Réinitialiser les états
-  //     setCurrentStep(1);
-  //     setFormSubmitted(true);
-  //     setWhatsappLink(whatsappUrl); // Sauvegarder le lien pour le bouton sur l'écran de confirmation
-      
-  //   } catch (error) {
-  //     console.error('Erreur:', {
-  //       error: error instanceof Error ? error.message : error,
-  //       formData,
-  //       timestamp: new Date().toISOString()
-  //     });
-  //     toast.error("Une erreur est survenue. Veuillez réessayer.");
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
+      const dealData = await dealRes.json();
+      if (!dealRes.ok) throw new Error(`Erreur création deal: ${dealData.detail}`);
+  };
 
   // Remplacer la fonction handleSubmitAndOpenWhatsApp par celle-ci :
-const handleOpenWhatsApp = () => {
-  if (!validateFinalStep() || isSubmitting) return;
-  
-  setIsSubmitting(true);
-  
-  try {
-    // Générer le message WhatsApp
-    const message = generateWhatsAppMessage();
-    const phoneNumber = "972584140489";
-    const encodedMessage = encodeURIComponent(message);
+  const handleOpenWhatsApp = async () => {
+    if (!validateFinalStep() || isSubmitting) return;
     
-    // Créer le lien WhatsApp en fonction du device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const whatsappUrl = isMobile 
-      ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
-      : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+    setIsSubmitting(true);
     
-    // Ouvrir WhatsApp directement
-    window.open(whatsappUrl, '_blank');
-    
-    // Réinitialiser les états si besoin
-    setCurrentStep(1);
-    setFormSubmitted(true);
-    setWhatsappLink(whatsappUrl);
-    
-    // Notification de succès 
-    toast.success("WhatsApp a été ouvert pour finaliser votre demande !");
-    
-  } catch (error) {
-    console.error('Erreur lors de l\'ouverture de WhatsApp:', error);
-    toast.error("Impossible d'ouvrir WhatsApp. Veuillez réessayer.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      // Envoi des données au CRM avant d'ouvrir WhatsApp
+      await handleCRMSubmit();
+      
+      // Générer le message WhatsApp
+      const message = generateWhatsAppMessage();
+      const phoneNumber = "972584140489";
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Créer le lien WhatsApp en fonction du device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const whatsappUrl = isMobile 
+        ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
+        : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+      
+      // Ouvrir WhatsApp directement
+      window.open(whatsappUrl, '_blank');
+      
+      // Réinitialiser les états
+      setCurrentStep(1);
+      setFormSubmitted(true);
+      setWhatsappLink(whatsappUrl);
+      
+      // Notification de succès 
+      toast.success("WhatsApp a été ouvert pour finaliser votre demande !");
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des données ou de l\'ouverture de WhatsApp:', error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Reset step on tab change
   const handleTabChange = (tab: string) => {
