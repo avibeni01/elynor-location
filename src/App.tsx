@@ -112,7 +112,12 @@ const timeOptions = generateTimeOptions();
 
 
 function App() {
-  const [shouldSubmitToCRM, setShouldSubmitToCRM] = useState(false);
+  const isValidPhoneNumber = (phone: string): boolean => {
+    // Validation basique: au moins 10 chiffres, avec possibilité d'avoir des espaces, tirets, parenthèses, etc.
+    const phoneRegex = /^(?:\+|00)?[0-9\s()\-]{10,}$/;
+    return phoneRegex.test(phone);
+  };
+  
   const [crmSubmitted, setCrmSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('hotel');
   const [currentStep, setCurrentStep] = useState(1);
@@ -282,8 +287,7 @@ function App() {
   };
 
   const validateFinalStep = () => {
-    // Hotel Step 2 / Car Step 3: Contact Info
-    return formData.firstName && formData.lastName && formData.email && formData.phone;
+    return formData.firstName && formData.lastName && formData.email && isValidPhoneNumber(formData.phone);
   };
 
   // --- Navigation ---
@@ -506,7 +510,7 @@ Téléphone: ${formData.phone}`;
 
   useEffect(() => {
     if (validateFinalStep() && !crmSubmitted) {
-      console.log("Contact info complete - submitting to CRM once");
+      console.log("Contact info complete with valid phone - submitting to CRM once");
       setCrmSubmitted(true);
       handleCRMSubmit();
     }
