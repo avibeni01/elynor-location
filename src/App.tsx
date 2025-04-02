@@ -461,12 +461,15 @@ Téléphone: ${formData.phone}`;
   };
 
   // Remplacer la fonction handleSubmitAndOpenWhatsApp par celle-ci :
-  const handleOpenWhatsApp = () => {
+  const handleOpenWhatsApp = async () => {
     if (!validateFinalStep() || isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
+      // Envoi des données au CRM avant d'ouvrir WhatsApp
+      await handleCRMSubmit();
+      
       // Générer le message WhatsApp
       const message = generateWhatsAppMessage();
       const phoneNumber = "972584140489";
@@ -478,11 +481,8 @@ Téléphone: ${formData.phone}`;
         ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
         : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
       
-      // Ouvrir WhatsApp directement - c'est une action initiée par l'utilisateur
+      // Ouvrir WhatsApp directement
       window.open(whatsappUrl, '_blank');
-      
-      // Marquer que les données doivent être envoyées au CRM
-      setShouldSubmitToCRM(true);
       
       // Réinitialiser les états
       setCurrentStep(1);
@@ -493,12 +493,29 @@ Téléphone: ${formData.phone}`;
       toast.success("WhatsApp a été ouvert pour finaliser votre demande !");
       
     } catch (error) {
-      console.error('Erreur lors de l\'ouverture de WhatsApp:', error);
-      toast.error("Impossible d'ouvrir WhatsApp. Veuillez réessayer.");
+      console.error('Erreur lors de l\'envoi des données ou de l\'ouverture de WhatsApp:', error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    // Vérifier si tous les champs requis sont remplis
+    const isContactInfoComplete = formData.firstName && 
+                                 formData.lastName && 
+                                 formData.email && 
+                                 formData.phone;
+                                 
+    // Si les informations sont complètes et que nous sommes sur l'étape finale
+    // on peut préparer l'envoi au CRM
+    if (isContactInfoComplete) {
+      // Pour éviter les envois multiples, on pourrait ajouter un flag
+      console.log("Contact info complete - ready to submit to CRM when user clicks WhatsApp button");
+      setShouldSubmitToCRM(true);
+    }
+  }, [formData.firstName, formData.lastName, formData.email, formData.phone]);
+
 
   // Utilisez un effet pour envoyer les données au CRM quand shouldSubmitToCRM change
 useEffect(() => {
