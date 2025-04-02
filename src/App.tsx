@@ -165,58 +165,6 @@ function App() {
   const stationsToDisplay = selectedCountry ? stations[selectedCountry.Item2 as keyof typeof stations]?.data || [] : [];
   const visaLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg";
 
-  const openWhatsApp = (phoneNumber: string, message: string) => {
-    // Encode le message de manière simple et fiable
-    const encodedMessage = encodeURIComponent(message);
-    
-    // Différentes méthodes pour ouvrir WhatsApp, du plus fiable au moins fiable
-    const fallbackLinks = [
-      `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`,
-      `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`,
-      `https://wa.me/${phoneNumber}?text=${encodedMessage}`
-    ];
-    
-    console.log('Tentative d\'ouverture WhatsApp avec message:', message);
-    
-    // Fonction pour essayer le lien suivant en cas d'échec
-    const tryNextLink = (index = 0) => {
-      if (index >= fallbackLinks.length) {
-        // Si tous les liens ont échoué, affiche une alerte avec instructions
-        alert(`Impossible d'ouvrir WhatsApp automatiquement. Veuillez ouvrir WhatsApp manuellement et contacter le +${phoneNumber}.`);
-        return;
-      }
-      
-      const currentLink = fallbackLinks[index];
-      console.log(`Essai link ${index + 1}:`, currentLink);
-      
-      // Sur mobile, utiliser window.location.href pour forcer la redirection
-      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        try {
-          window.location.href = currentLink;
-          // Ne peut pas vérifier si ça a fonctionné sur mobile via redirection
-        } catch (e) {
-          console.error('Erreur avec window.location.href:', e);
-          setTimeout(() => tryNextLink(index + 1), 500);
-        }
-      } else {
-        // Sur desktop, utiliser window.open
-        try {
-          const newWindow = window.open(currentLink, '_blank');
-          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-            console.log('window.open a échoué, essai suivant...');
-            setTimeout(() => tryNextLink(index + 1), 500);
-          }
-        } catch (e) {
-          console.error('Erreur avec window.open:', e);
-          setTimeout(() => tryNextLink(index + 1), 500);
-        }
-      }
-    };
-    
-    // Commencer avec le premier lien
-    tryNextLink();
-  };
-
   useEffect(() => {
     const loadGoogleMapsScript = () => {
       if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
@@ -313,6 +261,9 @@ function App() {
       : `${roomText}, ${adultText}, ${childText}, ${babyText}`;
   };
 
+  const [whatsappLink, setWhatsappLink] = useState('');
+  const [showWhatsappButton, setShowWhatsappButton] = useState(false);
+  
   // --- Step Validation ---
   const validateStep1 = () => {
     if (activeTab === 'hotel') {
@@ -471,12 +422,21 @@ function App() {
       setFormSubmitted(true); // Show success message
 
       // Open WhatsApp
+      // Dans la partie try après setFormSubmitted(true):
       setTimeout(() => {
         const message = generateWhatsAppMessage();
-        const phoneNumber = "972584140489"; // Sans le +
+        const phoneNumber = "972584140489";
+        const encodedMessage = encodeURIComponent(message);
         
-        // Tentative d'ouverture de WhatsApp avec le message
-        openWhatsApp(phoneNumber, message);
+        // Déterminer quel lien utiliser
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const primaryLink = isMobile 
+          ? `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`
+          : `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+        
+        // Stocker le lien pour le bouton
+        setWhatsappLink(primaryLink);
+        setShowWhatsappButton(true);
       }, 300);
       
 
@@ -496,42 +456,34 @@ function App() {
   const generateWhatsAppMessage = () => {
     let message = '';
     if (activeTab === 'hotel') {
-      message = `*Réservation Hôtel*%0A%0A` +
-        `🏨 *Destination:* ${encodeURIComponent(destination)}%0A` +
-        `📅 *Dates:* ${encodeURIComponent(dates.join(' - '))}%0A` +
-        `👥 *Occupants:* ${encodeURIComponent(getOccupantsSummary().replace(/\n/g, ', '))}%0A` +
-        `⭐ *Étoiles:* ${rating}%0A%0A` +
-        `*Options:*%0A` +
-        `🏊 Piscine: ${selectedOptions.pool ? '✅' : '❌'}%0A` +
-        `🍳 Petit-déjeuner: ${selectedOptions.breakfast ? '✅' : '❌'}%0A` +
-        `🏖️ Proche de la mer: ${selectedOptions.nearBeach ? '✅' : '❌'}%0A` +
-        `🏨 Hôtel particulier: ${hotelName ? `✅ ${encodeURIComponent(hotelName)}` : '❌'}`;
+      message = `Réservation Hôtel:\n
+  Destination: ${destination}\n
+  Dates: ${dates.join(' - ')}\n
+  Occupants: ${getOccupantsSummary()}\n
+  Étoiles: ${rating}⭐\n
+  Options:\n
+  - Piscine: ${selectedOptions.pool ? 'Oui' : 'Non'}\n
+  - Petit-déjeuner: ${selectedOptions.breakfast ? 'Oui' : 'Non'}\n
+  - Proche de la mer: ${selectedOptions.nearBeach ? 'Oui' : 'Non'}\n
+  Hôtel particulier: ${hotelName ? hotelName : 'Non spécifié'}\n`; // Use hotelName state
     } else { // 'car'
       const selectedStationObject = stationsToDisplay.find(s => s.Item1 === formData.station);
       const stationName = selectedStationObject ? formatStationName(selectedStationObject.Item2) : formData.station;
-      
-      message = `*Location Voiture*%0A%0A` +
-        `🌍 *Pays:* ${encodeURIComponent(formData.country)}%0A` +
-        `📍 *Station:* ${encodeURIComponent(stationName)}%0A` +
-        `📅 *Dates:* Du ${encodeURIComponent(formData.pickupDate)} ${formData.pickupTime} au ${encodeURIComponent(formData.returnDate)} ${formData.returnTime}%0A` +
-        `👤 *Âge conducteur:* ${formData.driverAge}%0A` +
-        `💳 *Visa Premier:* ${formData.hasVisa ? '✅' : '❌'}%0A` +
-        `✡️ *Restriction Shabbat:* ${formData.shabbatRestriction ? '✅' : '❌'}`;
-      
-      if (selectedVehicle) {
-        message += `%0A🚗 *Véhicule sélectionné:* ${encodeURIComponent(selectedVehicle["Nom du véhicule"])}`;
-      }
+      message = `Location Voiture:\n
+  Pays: ${formData.country}\n
+  Station: ${stationName}\n
+  Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
+  Âge conducteur: ${formData.driverAge}\n
+  Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
+  Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
+      message += `\nVéhicule sélectionné: ${selectedVehicle ? selectedVehicle["Nom du véhicule"] : 'Aucun'}\n`;
     }
-  
-    message += `%0A%0A*Contact:*%0A` +
-      `👤 *Nom:* ${encodeURIComponent(formData.firstName)} ${encodeURIComponent(formData.lastName)}%0A` +
-      `📧 *Email:* ${encodeURIComponent(formData.email)}%0A` +
-      `📞 *Téléphone:* ${encodeURIComponent(formData.phone)}`;
-    
-    if (formData.notes) {
-      message += `%0A📝 *Notes:* ${encodeURIComponent(formData.notes)}`;
-    }
-  
+    message += `\nContact:\n
+  Nom: ${formData.firstName} ${formData.lastName}\n
+  Email: ${formData.email}\n
+  Téléphone: ${formData.phone}\n
+  Notes: ${formData.notes}`;
+
     return message;
   };
 
@@ -935,23 +887,53 @@ function App() {
                     (activeTab === 'car' && currentStep === 2 && validateStep2Car());
    const isFinalStep = (activeTab === 'hotel' && currentStep === 2) || (activeTab === 'car' && currentStep === 3);
 
-  return (
+   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-2 md:pt-4 pb-10">
-      <div className="w-full max-w-screen-xl mx-auto px-6"> {/* Augmenté de px-4 à px-6 */}
-        <div className="bg-white rounded-lg shadow-xl p-8"> {/* Augmenté de p-6 à p-8 */}
+      <div className="w-full max-w-screen-xl mx-auto px-6">
+        <div className="bg-white rounded-lg shadow-xl p-8">
           <Toaster position="top-center" />
-
-          {/* Message de succès (déplacé en haut pour visibilité immédiate après soumission) */}
+  
+          {/* Message de succès avec bouton WhatsApp */}
           {formSubmitted && (
-              <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md text-center">
-                  <p className="font-semibold">Merci ! Votre demande a été envoyée.</p>
-                  <p className="text-sm">Nous vous contacterons bientôt. Vous avez été redirigé vers WhatsApp pour confirmer.</p>
-                  {/* Ajouter un bouton pour recommencer si besoin */}
-                  <button onClick={() => { setFormSubmitted(false); setCurrentStep(1); /* Reset other states if needed */ }} className="mt-2 text-sm text-blue-600 underline">Faire une nouvelle demande</button>
+            <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md text-center">
+              <p className="font-semibold">Merci ! Votre demande a été envoyée.</p>
+              <p className="text-sm">Nous vous contacterons bientôt.</p>
+              
+              {/* Bouton WhatsApp */}
+              <div className="mt-4">
+                <p className="mb-2 text-sm">Cliquez sur le bouton ci-dessous pour ouvrir WhatsApp et confirmer votre demande :</p>
+                <a 
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                  Ouvrir WhatsApp
+                </a>
+                
+                {/* Conteneur pour liens alternatifs */}
+                <div id="whatsapp-links-container" className="mt-2"></div>
               </div>
+              
+              {/* Bouton pour recommencer */}
+              <button 
+                onClick={() => { 
+                  setFormSubmitted(false); 
+                  setCurrentStep(1);
+                  setShowWhatsappButton(false);
+                  setWhatsappLink('');
+                }} 
+                className="mt-4 text-sm text-blue-600 underline"
+              >
+                Faire une nouvelle demande
+              </button>
+            </div>
           )}
-
-          {!formSubmitted && ( // N'affiche le formulaire que si non soumis
+  
+          {!formSubmitted && (
             <>
               {/* Onglets */}
               <div className="flex gap-6 mb-6 border-b">
@@ -966,23 +948,23 @@ function App() {
                   <Car size={20} /> Louer un véhicule
                 </button>
               </div>
-
+  
               {/* Contenu de l'étape */}
               <form onSubmit={handleSubmit}>
                 {renderStepContent()}
-
+  
                 {/* Boutons de Navigation / Soumission */}
                 <div className="flex justify-between items-center mt-8 pt-4 border-t">
                   {/* Bouton Précédent */}
                   <button
                     type="button"
                     onClick={handlePreviousStep}
-                    className={`flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-opacity ${currentStep > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} // Cacher si première étape
+                    className={`flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-opacity ${currentStep > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                     disabled={currentStep <= 1}
                   >
                      <ArrowLeft size={16} /> Précédent
                   </button>
-
+  
                   {/* Bouton Suivant / Soumettre */}
                   {!isFinalStep ? (
                       <button
