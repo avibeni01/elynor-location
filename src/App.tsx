@@ -14,6 +14,23 @@ import RENTAL_COUNTRIES from './liste-pays.json';
 import vehicles from './liste_vehicules_images.json';
 import stations from './resultatsStations.json';
 
+// Fonction utilitaire pour le suivi des événements Facebook Pixel
+const trackFbEvent = (eventName: string, params = {}) => {
+  if (window.fbq) {
+    window.fbq('track', eventName, params);
+  } else {
+    console.warn('Facebook Pixel not loaded');
+  }
+};
+
+// Déclaration pour TypeScript
+declare global {
+  interface Window {
+    fbq: any;
+    google: any;
+  }
+}
+
 const PrevArrow = (props: any) => (
   <button
     {...props}
@@ -378,6 +395,13 @@ Téléphone: ${formData.phone}`;
       driverAge,
       country,
     } = formData;
+
+    if (window.fbq) {
+      window.fbq('track', 'Contact', {
+        content_category: activeTab === 'hotel' ? 'hotel_reservation' : 'car_rental',
+        content_name: activeTab === 'hotel' ? destination : formData.country
+      });
+    }
       
     // Convertir l'âge en nombre valide pour le CRM
       let ageValue = driverAge;
@@ -998,7 +1022,7 @@ Téléphone: ${formData.phone}`;
                   {isFinalStep ? (
                     <button
                     type="button"
-                    className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-2 bg-[#EA580C] text-white rounded-md hover:bg-orange-700 disabled:opacity-50"
                     disabled={!validateFinalStep() || isSubmitting}
                     onClick={handleOpenWhatsApp}
                     >
