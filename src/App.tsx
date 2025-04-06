@@ -815,6 +815,10 @@ Téléphone: ${formData.phone}`;
                        ...provided,
                        color: 'inherit' // Inherit text color
                     }),
+                    menu: (provided) => ({ // Ensure menu is on top
+                      ...provided,
+                      zIndex: 9999
+                    }),
                   }}
                   required // Note: react-select doesn't use HTML5 required; validation is handled in JS
                 />
@@ -855,6 +859,10 @@ Téléphone: ${formData.phone}`;
                       ...provided,
                       color: state.data.isAirport ? '#DC2626' : 'inherit', // Red text for airports
                       // Add other styles like background on hover/select if needed
+                    }),
+                    menu: (provided) => ({ // Ensure menu is on top
+                      ...provided,
+                      zIndex: 9999
                     }),
                   }}
                   required // For semantic meaning, validation is JS based
