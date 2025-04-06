@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select'; // Import react-select
 import { Hotel, Car, Search, Calendar, Users, Star, Plus, Minus, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/l10n/fr.js';
@@ -127,8 +128,47 @@ const generateTimeOptions = () => {
 };
 const timeOptions = generateTimeOptions();
 
+// Prepare country options for react-select
+const countryOptions = RENTAL_COUNTRIES
+  .map(country => ({ value: country.Item1, label: country.Item2 }))
+  .sort((a, b) => {
+    const preferred = ['Israel', 'France', 'États-Unis'];
+    // Prioritize preferred countries, then sort alphabetically
+    const aIsPreferred = preferred.includes(a.label);
+    const bIsPreferred = preferred.includes(b.label);
+    if (aIsPreferred && !bIsPreferred) return -1;
+    if (!aIsPreferred && bIsPreferred) return 1;
+    // If both are preferred or both are not, sort alphabetically
+    return a.label.localeCompare(b.label);
+  });
+
 
 function App() {
+
+  // Custom filter function for react-select
+  const filterCountryOptions = (option: { label: string; value: string }, inputValue: string) => {
+    const lowerInput = inputValue.toLowerCase();
+    const lowerLabel = option.label.toLowerCase();
+
+    // Check for standard prefix match
+    if (lowerLabel.startsWith(lowerInput)) {
+      return true;
+    }
+
+    // Check for specific abbreviations
+    if (lowerLabel === 'israel' && lowerInput === 'il') {
+      return true;
+    }
+    if (lowerLabel === 'france' && lowerInput === 'fr') {
+      return true;
+    }
+    if (lowerLabel === 'U.S.A' && lowerInput === 'us') {
+      return true;
+    }
+
+    return false;
+  };
+
   const isValidPhoneNumber = (phone: string): boolean => {
     // Validation basique: au moins 10 chiffres, avec possibilité d'avoir des espaces, tirets, parenthèses, etc.
     const phoneRegex = /^(?:\+|00)?[0-9\s()\-]{10,}$/;
@@ -734,24 +774,91 @@ Téléphone: ${formData.phone}`;
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 md:gap-4 mb-6 items-end">
               {/* Pays */}
               <div className="sm:col-span-1 md:col-span-1">
-                <select id="country-select" className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.country}
-                  onChange={(e) => setFormData({...formData, country: e.target.value, station: ''})} required>
-                  <option value="">Pays *</option>
-                  {RENTAL_COUNTRIES.sort((a, b) => ['Israel', 'France', 'États-Unis'].includes(b.Item2) ? 1 : -1)
-                    .map((country) => (<option key={country.Item1} value={country.Item1}>{country.Item2}</option>))}
-                </select>
+                <Select
+                  inputId="country-select"
+                  options={countryOptions}
+                  value={countryOptions.find(option => option.value === formData.country) || null}
+                  onChange={(selectedOption) => {
+                    setFormData({ ...formData, country: selectedOption ? selectedOption.value : '', station: '' });
+                  }}
+                  placeholder="Pays *"
+                  isSearchable
+                  filterOption={filterCountryOptions} // Add custom filter
+                  noOptionsMessage={() => 'Aucun pays trouvé'}
+                  className="react-select-container text-sm md:text-base" // Basic container class
+                  classNamePrefix="react-select" // Prefix for internal elements (e.g., react-select__control)
+                  styles={{ // Basic styling to match height - adjust as needed
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '48px', // Match p-3 roughly (padding + line height)
+                      borderColor: '#d1d5db', // Match border-gray-300
+                      borderRadius: '0.5rem', // Match rounded-lg
+                      boxShadow: 'none', // Remove default focus shadow
+                      '&:hover': {
+                        borderColor: '#9ca3af', // Match border-gray-400 on hover
+                      }
+                    }),
+                    placeholder: (provided) => ({
+                      ...provided,
+                      color: '#6b7280', // Match text-gray-500
+                    }),
+                    input: (provided) => ({
+                      ...provided,
+                      margin: '0px',
+                      padding: '0px',
+                    }),
+                    valueContainer: (provided) => ({
+                      ...provided,
+                      padding: '0 8px' // Adjust padding inside control
+                    }),
+                    singleValue: (provided) => ({
+                       ...provided,
+                       color: 'inherit' // Inherit text color
+                    }),
+                  }}
+                  required // Note: react-select doesn't use HTML5 required; validation is handled in JS
+                />
               </div>
               {/* Station */}
               <div className="sm:col-span-1 md:col-span-2">
-                <select id="station-select" className="w-full p-3 border rounded-lg text-sm md:text-base" value={formData.station}
-                  onChange={(e) => setFormData({...formData, station: e.target.value})} required disabled={!formData.country}>
-                  <option value="">Station *</option>
-                  {stationsToDisplay.map(station => (
-                    <option key={station.Item1} value={station.Item1} className={station.Item2.startsWith("red_") ? 'text-red-600' : ''}>
-                      {formatStationName(station.Item2)}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  inputId="station-select"
+                  options={stationsToDisplay.map(station => ({
+                    value: station.Item1,
+                    label: formatStationName(station.Item2),
+                    isAirport: station.Item2.startsWith("red_") // Add a flag for styling
+                  }))}
+                  value={stationsToDisplay.map(station => ({ value: station.Item1, label: formatStationName(station.Item2), isAirport: station.Item2.startsWith("red_") })).find(option => option.value === formData.station) || null}
+                  onChange={(selectedOption) => {
+                    setFormData({ ...formData, station: selectedOption ? selectedOption.value : '' });
+                  }}
+                  placeholder="Station *"
+                  isDisabled={!formData.country}
+                  isSearchable
+                  noOptionsMessage={() => 'Aucune station trouvée'}
+                  className="react-select-container text-sm md:text-base"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '48px', // Match p-3 roughly
+                      borderColor: '#d1d5db',
+                      borderRadius: '0.5rem',
+                      boxShadow: 'none',
+                      '&:hover': { borderColor: '#9ca3af' }
+                    }),
+                    placeholder: (provided) => ({ ...provided, color: '#6b7280' }),
+                    input: (provided) => ({ ...provided, margin: '0px', padding: '0px' }),
+                    valueContainer: (provided) => ({ ...provided, padding: '0 8px' }),
+                    singleValue: (provided) => ({ ...provided, color: 'inherit' }),
+                    option: (provided, state) => ({ // Style individual options
+                      ...provided,
+                      color: state.data.isAirport ? '#DC2626' : 'inherit', // Red text for airports
+                      // Add other styles like background on hover/select if needed
+                    }),
+                  }}
+                  required // For semantic meaning, validation is JS based
+                />
               </div>
               {/* Dates */}
               <div className="relative sm:col-span-2 md:col-span-2">
