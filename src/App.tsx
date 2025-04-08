@@ -391,7 +391,7 @@ Station: ${stationName}\n
 Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
 Âge conducteur: ${formData.driverAge}\n
 Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
-Restriction Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
+Shomer Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
       
       if (selectedVehicle) {
         message += `\nVéhicule sélectionné: ${selectedVehicle["Nom du véhicule"]}\n`;
