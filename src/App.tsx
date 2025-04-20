@@ -338,9 +338,8 @@ function App() {
   };
 
   const validateStep2Car = () => {
-    // Car Step 2: Vehicle Selection (currently optional)
-    // return selectedVehicle !== null; // Uncomment if vehicle selection becomes mandatory
-    return true; // Always allow proceeding for now
+    // Car Step 2: Vehicle Selection is now required
+    return selectedVehicle !== null;
   };
 
   const validateFinalStep = () => {
