@@ -390,7 +390,7 @@ Station: ${stationName}\n
 Dates: Du ${formData.pickupDate} ${formData.pickupTime} au ${formData.returnDate} ${formData.returnTime}\n
 Âge conducteur: ${formData.driverAge}\n
 Visa Premier: ${formData.hasVisa ? 'Oui' : 'Non'}\n
-Shomer Shabbat: ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
+Ne roule pas le chabat : ${formData.shabbatRestriction ? 'Oui' : 'Non'}\n`;
       
       if (selectedVehicle) {
         message += `\nVéhicule sélectionné: ${selectedVehicle["Nom du véhicule"]}\n`;
@@ -943,19 +943,64 @@ Téléphone: ${formData.phone}`;
             {/* Ligne Options / Age / Promo */}
             {/* Grid 1 colonne mobile -> 4 colonnes md */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 items-start">
-              {/* Options Visa / Shabbat - Now always flex-row */}
-              <div className="flex flex-row gap-3 md:col-span-2">
-                <button type="button" onClick={() => setFormData({ ...formData, hasVisa: !formData.hasVisa })}
-                  className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.hasVisa ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <img src={visaLogoUrl} alt="Visa Logo" className="w-8 h-auto hidden sm:block" />
-                  <span>J'ai une Visa Première</span>
-                </button>
-                <button type="button" onClick={() => setFormData({ ...formData, shabbatRestriction: !formData.shabbatRestriction })}
-                  className={`flex items-center gap-2 p-3 border rounded-lg transition-colors w-full justify-center text-sm ${formData.shabbatRestriction ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-white text-gray-800 hover:bg-gray-50'}`}>
-                  <img src="/chabbat.png" alt="Shabbat" className="w-8 h-auto hidden sm:block" /> {/* Masquer l'image sur mobile avec hidden sm:block */}
-                  <span>Je roule pas Chabbat</span>
-                </button>
-              </div>
+            <div className="md:col-span-2 grid grid-cols-2 gap-3">
+  {/* Question Visa */}
+  <div className="col-span-1">
+    <p className="text-sm font-medium text-gray-800 mb-2">
+      Avez-vous une Visa Première ? <span className="text-red-500">*</span>
+    </p>
+    <div className="flex gap-4">
+      <label className="flex items-center">
+        <input
+          type="radio"
+          name="hasVisa"
+          checked={formData.hasVisa === true}
+          onChange={() => setFormData({ ...formData, hasVisa: true })}
+        />
+        <span className="ml-2">Oui</span>
+      </label>
+      
+      <label className="flex items-center">
+        <input
+          type="radio"
+          name="hasVisa"
+          checked={formData.hasVisa === false}
+          onChange={() => setFormData({ ...formData, hasVisa: false })}
+        />
+        <span className="ml-2">Non</span>
+      </label>
+    </div>
+  </div>
+  
+  {/* Question Shabbat */}
+  <div className="col-span-1">
+    <p className="text-sm font-medium text-gray-800 mb-2">
+      Roulez-vous pendant Chabbat ? <span className="text-red-500">*</span>
+    </p>
+    <div className="flex gap-4">
+      <label className="flex items-center">
+        <input
+          type="radio"
+          name="shabbatRestriction"
+          checked={formData.shabbatRestriction === false}
+          onChange={() => setFormData({ ...formData, shabbatRestriction: false })}
+        />
+        <span className="ml-2">Oui</span>
+      </label>
+      
+      <label className="flex items-center">
+        <input
+          type="radio"
+          name="shabbatRestriction"
+          checked={formData.shabbatRestriction === true}
+          onChange={() => setFormData({ ...formData, shabbatRestriction: true })}
+        />
+        <span className="ml-2">Non</span>
+      </label>
+    </div>
+  </div>
+</div>
+
               {/* Age Conducteur and Promo Code - Now flex container on mobile */}
               <div className="flex flex-row gap-3 md:col-span-2">
                 {/* Age Conducteur */}
