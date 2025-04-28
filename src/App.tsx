@@ -787,28 +787,31 @@ Téléphone: ${formData.phone}`;
                       {occupants.children > 0 && (
                         <div className="space-y-2 pt-2 border-t mt-3">
                           <p className="text-sm font-medium">Âge des enfants (2-17 ans)</p>
-                           {/* Utiliser grid pour mieux s'adapter */}
                           <div className="grid grid-cols-2 gap-2">
                             {occupants.childrenAges.map((age, index) => (
-                              <select 
-                                key={index} 
-                                className="p-2 border rounded text-sm" 
-                                value={age || ""} 
-                                onChange={(e) => {
-                                  const newAges = [...occupants.childrenAges];
-                                  newAges[index] = e.target.value === "" ? "" : parseInt(e.target.value);
-                                  setOccupants(prev => ({ ...prev, childrenAges: newAges }));
-                                }}
-                                required
-                              >
-                                <option value="">Veuillez sélectionner</option>
-                                {Array.from({ length: 16 }, (_, i) => i + 2).map(a => (
-                                  <option key={a} value={a}>{a} ans</option>
-                                ))}
-                              </select>
-                          ))}
+                              <div key={index} className="relative">
+                                <select
+                                  className={`p-2 border rounded text-sm w-full ${age === "" ? "border-red-500" : "border-gray-300"}`}
+                                  value={age || ""}
+                                  onChange={(e) => {
+                                    const newAges = [...occupants.childrenAges];
+                                    newAges[index] = e.target.value === "" ? "" : parseInt(e.target.value);
+                                    setOccupants(prev => ({ ...prev, childrenAges: newAges }));
+                                  }}
+                                  required
+                                >
+                                  <option value="">Veuillez sélectionner</option>
+                                  {Array.from({ length: 16 }, (_, i) => i + 2).map(a => (
+                                    <option key={a} value={a}>{a} ans</option>
+                                  ))}
+                                </select>
+                                {age === "" && (
+                                  <p className="text-red-500 text-xs mt-1">Âge requis</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        </div> 
+                        </div>
                       )} 
                     </div> 
                      {/* Bouton pour fermer le popup sur mobile */}
