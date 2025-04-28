@@ -174,6 +174,12 @@ function App() {
     const phoneRegex = /^(?:\+|00)?[0-9\s()\-]{10,}$/;
     return phoneRegex.test(phone);
   };
+
+  // Fonction pour vérifier si un email est valide
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
   
   const [crmSubmitted, setCrmSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('hotel');
@@ -194,7 +200,7 @@ function App() {
     adults: 2, 
     children: 0, 
     babies: 0,   
-    childrenAges: [] as number[] 
+    childrenAges: [] as (number | string)[] 
   });
   const [selectedOptions, setSelectedOptions] = useState({
     pool: false,
@@ -296,7 +302,7 @@ function App() {
       if (type === 'children') {
         const ages = [...prev.childrenAges];
         if (increment > 0) {
-          ages.push(2); // Default age for new child (2-17)
+          ages.push(""); // Changer ici de 2 à ""
         } else if (increment < 0 && ages.length > 0) {
           ages.pop();
         }
@@ -330,8 +336,13 @@ function App() {
   // --- Step Validation ---
   const validateStep1 = () => {
     if (activeTab === 'hotel') {
-      // Hotel Step 1: Destination and Dates
-      return destination && dates.length === 2;
+    // Vérifier si tous les âges des enfants sont remplis
+    const allChildrenAgesSelected = occupants.children === 0 || 
+      (occupants.childrenAges.length === occupants.children && 
+      occupants.childrenAges.every(age => age !== ""));
+      
+    // Hotel Step 1: Destination and Dates
+    return destination && dates.length === 2 && allChildrenAgesSelected;
     } else { // Car Step 1: Country, Station, Dates, Times, Age
       return formData.country && formData.station && formData.pickupDate && formData.returnDate && formData.pickupTime && formData.returnTime && formData.driverAge;
     }
@@ -349,14 +360,69 @@ function App() {
   // --- Navigation ---
   const handleNextStep = () => {
     if (activeTab === 'hotel') {
-      if (currentStep === 1 && validateStep1()) {
-        setCurrentStep(2); // Move Hotel 1 -> 2 (Contact)
+      if (currentStep === 1) {
+        // Vérifications pour l'onglet Hôtel étape 1
+        if (!destination) {
+          toast.error("Veuillez saisir une destination");
+          return;
+        }
+        
+        if (dates.length !== 2) {
+          toast.error("Veuillez sélectionner les dates d'arrivée et de départ");
+          return;
+        }
+        
+        // Vérifier si tous les âges des enfants sont remplis
+        if (occupants.children > 0 && 
+            (occupants.childrenAges.length !== occupants.children || 
+             occupants.childrenAges.some(age => age === ""))) {
+          toast.error("Veuillez sélectionner l'âge de chaque enfant");
+          return;
+        }
+        
+        setCurrentStep(2); // Tout est validé, on passe à l'étape suivante
       }
     } else { // car tab
-      if (currentStep === 1 && validateStep1()) {
-        setCurrentStep(2); // Move Car 1 -> 2 (Vehicle Selection)
-      } else if (currentStep === 2 && validateStep2Car()) {
-        setCurrentStep(3); // Move Car 2 -> 3 (Contact Info)
+      if (currentStep === 1) {
+        // Vérifications pour l'onglet Voiture étape 1
+        if (!formData.country) {
+          toast.error("Veuillez sélectionner un pays");
+          return;
+        }
+        
+        if (!formData.station) {
+          toast.error("Veuillez sélectionner une station");
+          return;
+        }
+        
+        if (!formData.pickupDate || !formData.returnDate) {
+          toast.error("Veuillez sélectionner les dates de prise et de retour");
+          return;
+        }
+        
+        if (!formData.pickupTime) {
+          toast.error("Veuillez sélectionner l'heure de prise du véhicule");
+          return;
+        }
+        
+        if (!formData.returnTime) {
+          toast.error("Veuillez sélectionner l'heure de retour du véhicule");
+          return;
+        }
+        
+        if (!formData.driverAge) {
+          toast.error("Veuillez sélectionner l'âge du conducteur");
+          return;
+        }
+        
+        setCurrentStep(2); // Tout est validé, on passe à l'étape suivante
+      } else if (currentStep === 2) {
+        if (!selectedVehicle) {
+          toast.error("Veuillez sélectionner un véhicule");
+          return;
+        }
+        
+        setCurrentStep(3); // Véhicule sélectionné, on passe à l'étape suivante
       }
     }
   };
@@ -496,7 +562,7 @@ Téléphone: ${formData.phone}`;
             adults: occupants.adults,
             children: occupants.children,
             babies: occupants.babies,
-            childrenAges: occupants.childrenAges 
+            childrenAges: occupants.childrenAges
           },
           rating,
           selectedOptions: {
@@ -537,7 +603,43 @@ Téléphone: ${formData.phone}`;
 
   // Remplacer la fonction handleSubmitAndOpenWhatsApp par celle-ci :
   const handleOpenWhatsApp = async () => {
-    if (!validateFinalStep() || isSubmitting) return;
+    if (!validateFinalStep()) {
+      if (!formData.firstName) {
+        toast.error("Veuillez saisir votre prénom");
+        return;
+      }
+      
+      if (!formData.lastName) {
+        toast.error("Veuillez saisir votre nom");
+        return;
+      }
+      
+      if (!formData.email) {
+        toast.error("Veuillez saisir votre email");
+        return;
+      }
+      
+      if (!isValidEmail(formData.email)) {
+        toast.error("Le format de l'email n'est pas valide");
+        return;
+      }
+      
+      if (!formData.phone) {
+        toast.error("Veuillez saisir votre numéro de téléphone");
+        return;
+      }
+      
+      if (!isValidPhoneNumber(formData.phone)) {
+        toast.error("Le format du numéro de téléphone n'est pas valide");
+        return;
+      }
+      
+      // Si on arrive ici, c'est qu'il y a une erreur de validation mais qu'on n'a pas identifié la cause spécifique
+      toast.error("Veuillez remplir tous les champs obligatoires correctement");
+      return;
+    }
+    
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     
@@ -688,18 +790,23 @@ Téléphone: ${formData.phone}`;
                            {/* Utiliser grid pour mieux s'adapter */}
                           <div className="grid grid-cols-2 gap-2">
                             {occupants.childrenAges.map((age, index) => (
-                              <select key={index} className="p-2 border rounded text-sm" value={age}
+                              <select 
+                                key={index} 
+                                className="p-2 border rounded text-sm" 
+                                value={age || ""} 
                                 onChange={(e) => {
                                   const newAges = [...occupants.childrenAges];
-                                  newAges[index] = parseInt(e.target.value);
+                                  newAges[index] = e.target.value === "" ? "" : parseInt(e.target.value);
                                   setOccupants(prev => ({ ...prev, childrenAges: newAges }));
-                                }}>
-                                {/* Options from 2 to 17 */}
+                                }}
+                                required
+                              >
+                                <option value="">Veuillez sélectionner</option>
                                 {Array.from({ length: 16 }, (_, i) => i + 2).map(a => (
                                   <option key={a} value={a}>{a} ans</option>
                                 ))}
                               </select>
-                            ))}
+                          ))}
                           </div>
                         </div> 
                       )} 
