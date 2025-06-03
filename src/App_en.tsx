@@ -9,9 +9,9 @@ import "slick-carousel/slick/slick-theme.css";
 import { Toaster, toast } from 'react-hot-toast';
 
 // Liste des pays pour la location de voiture
-import RENTAL_COUNTRIES from './liste-pays.json';
-import vehicles from './liste_vehicules_images.json';
-import stations from './resultatsStations.json';
+import RENTAL_COUNTRIES from './data/countries.json';
+import vehicles from './data/vehicules.json';
+import stations from './data/stations.json';
 
 // Fonction utilitaire pour le suivi des événements Facebook Pixel
 const trackFbEvent = (eventName: string, params = {}) => {
